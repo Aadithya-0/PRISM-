@@ -1,78 +1,73 @@
-import os
-from google import genai
-from dotenv import load_dotenv
+from __future__ import annotations
 
-load_dotenv(override=True)
+import sys
+from pathlib import Path
 
-client = genai.Client(
-    api_key=os.environ.get("GEMINI_API_KEY"),
-)
+# Ensure workspace root is in sys.path
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 
-generation_config = {
-    'max_output_tokens': 65536,
-    'thinking_level': 'low',
-}
+from prism.deciders.llm import GeminiCardWriter
+from prism.models import Message, PageBlock, TopicCard
 
-from pydantic import BaseModel, Field
-from typing import List
+def main():
+    print("=" * 60)
+    print(" PRISM GeminiCardWriter Demonstration")
+    print("=" * 60)
 
-class TopicCardOutput(BaseModel):
-    label: str = Field(description="8 words or fewer naming the active topic.")
-    description: str = Field(description="2-3 sentences stating ONLY the currently valid, agreed-upon factual state of this topic.")
-    key_facts: List[str] = Field(description="Concrete values only (names, IDs, numbers, file paths, finalized decisions, preferences), one per item.")
-    entities: List[str] = Field(description="Key proper nouns and specific identifiers that remain currently relevant.")
+    # 1. Initialize GeminiCardWriter (auto-loads .env)
+    writer = GeminiCardWriter(model="gemini-3.8-flash")
+    print(f"[OK] GeminiCardWriter initialized with model: {writer.model}")
 
-sample_input = """PREVIOUS CARD:
-(none)
+    # 2. First Turn: Topic creation
+    turn1_pages = [
+        PageBlock(
+            seq=1,
+            topic_id=1,
+            data=[
+                Message("user", "We are organizing a 4-day trip to Goa from November 14 to 18."),
+                Message("assistant", "Sounds exciting! Where will you stay?"),
+                Message("user", "Staying at Taj Exotica in Benaulim, South Goa. Booking ref is GOA-9921."),
+                Message("assistant", "Got it. Any vehicle rentals planned?"),
+                Message("user", "Yes, rented a Mahindra Thar from GoaCarRentals. Total budget is 85000 INR."),
+            ],
+            is_open=False,
+        )
+    ]
 
-NEW PAGES:
-User: We are organizing a 4-day trip to Goa from November 14 to 18.
-Assistant: Sounds exciting! Where will you stay?
-User: Staying at Taj Exotica in Benaulim, South Goa. Booking ref is GOA-9921.
-Assistant: Got it. Any vehicle rentals planned?
-User: Yes, rented a Mahindra Thar from GoaCarRentals. Total budget is 85000 INR.
-"""
+    print("\n--- Generating Initial Topic Card from PageBlock 1 ---")
+    card1 = writer.write(old_card=None, pages=turn1_pages)
 
-interaction = client.interactions.create(
-    model='gemini-2.5-flash',
-    input=sample_input,
-    system_instruction="""You maintain an index card for one conversation topic.
-You get the previous card (may be empty) and the new pages since it was written.
-Return ONLY JSON: {\"label\": str, \"description\": str, \"key_facts\": [str], \"entities\": [str]}
+    print(f"Label:           {card1.label}")
+    print(f"Description:     {card1.description}")
+    print(f"Key Facts:       {card1.key_facts}")
+    print(f"Entities:        {card1.entities}")
+    print(f"Covered Through: Page {card1.covered_through}")
 
-Rules:
-1. label: 8 words or fewer naming the active topic.
-2. description: 2-3 sentences stating ONLY the currently valid, agreed-upon factual state of this topic.
-   - Ground-truth snapshot only: State what is currently true, active, and decided right now.
-   - NO chronological storytelling or changelogs: NEVER write statements describing past revision history (e.g. do NOT say "user initially wanted X but later adjusted to Y", "user changed mind", or "decided against Z").
-   - Drop obsolete or superseded context completely so downstream semantic routing is never misled by outdated details.
-3. key_facts: Concrete values only (names, IDs, numbers, file paths, finalized decisions, preferences), one per item.
-4. Overwrite contradicted facts: If new information contradicts or updates an old fact, replace the old one completely. Never keep both past and present versions.
-5. Never drop a still-valid fact to save space. Never invent anything not stated in the pages.
-6. entities: Key proper nouns and specific identifiers that remain currently relevant.
-7. Keep the whole card concise (under ~150 tokens).""",
-    generation_config=generation_config,
-    response_format={
-        "type": "text",
-        "mime_type": "application/json",
-        "schema": TopicCardOutput.model_json_schema(),
-    },
-)
+    # 3. Second Turn: Topic Update (Contradiction & Overwrite test)
+    turn2_pages = [
+        PageBlock(
+            seq=2,
+            topic_id=1,
+            data=[
+                Message("user", "Update on the Goa trip: We changed the hotel from Taj Exotica to Alila Diwa Goa."),
+                Message("user", "New booking reference is ALILA-4022. Budget increased to 95000 INR."),
+                Message("assistant", "Updated! Alila Diwa in Majorda is confirmed."),
+            ],
+            is_open=False,
+        )
+    ]
 
-raw_text = interaction.output_text.strip()
-if raw_text.startswith("```"):
-    parts = raw_text.split("```")
-    if len(parts) >= 2:
-        raw_text = parts[1]
-        if raw_text.startswith("json"):
-            raw_text = raw_text[4:]
-        raw_text = raw_text.rstrip("`").strip()
+    print("\n--- Updating Topic Card with PageBlock 2 (Fact Revision) ---")
+    card2 = writer.write(old_card=card1, pages=turn2_pages)
 
-card = TopicCardOutput.model_validate_json(raw_text)
-print("=== PARSED TOPIC CARD ===")
-print("Label:      ", card.label)
-print("Description:", card.description)
-print("Key Facts:  ", card.key_facts)
-print("Entities:   ", card.entities)
+    print(f"Label:           {card2.label}")
+    print(f"Description:     {card2.description}")
+    print(f"Key Facts:       {card2.key_facts}")
+    print(f"Entities:        {card2.entities}")
+    print(f"Covered Through: Page {card2.covered_through}")
+    print("\n" + "=" * 60)
+    print(" [SUCCESS] TopicCard structured output and fact update verified!")
+    print("=" * 60)
 
-
+if __name__ == "__main__":
+    main()

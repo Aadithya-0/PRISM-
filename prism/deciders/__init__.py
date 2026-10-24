@@ -8,7 +8,7 @@ from .laya_decider import (
     get_shared_router,
     reset_shared_router,
 )
-from .llm import LLMCardWriter
+from .llm import GeminiCardWriter, LLMCardWriter, TopicCardOutput
 
 __all__ = [
     "SegmentDecision",
@@ -21,6 +21,8 @@ __all__ = [
     "get_shared_router",
     "reset_shared_router",
     "LLMCardWriter",
+    "GeminiCardWriter",
+    "TopicCardOutput",
     "KeywordSegmenter",
     "KeywordRouter",
     "FakeCardWriter",
