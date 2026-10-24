@@ -1,11 +1,11 @@
 # PRISM test report
 
-> Generated `2026-09-20 21:42:56`
+> Generated `2026-10-24 14:35:15`
 
 
 ---## Summary
 
-**42/42 tests passed** · 229 checks · 110 conversation turns logged
+**47/47 tests passed** · 262 checks · 114 conversation turns logged
 
 | ID | Test | Turns | Checks | Result |
 |:-:|:--|:-:|:-:|:-:|
@@ -46,9 +46,14 @@
 | D1 | KeywordSegmenter rules | 0 | 5 | ✅ PASS |
 | D2 | KeywordRouter scores | 0 | 4 | ✅ PASS |
 | D3 | FakeCardWriter edge cases | 0 | 5 | ✅ PASS |
-| D4 | JevSegmenter decision rules | 0 | 11 | ✅ PASS |
-| D5 | JevRouter builds one question per topic | 0 | 7 | ✅ PASS |
+| D4 | LayaSegmenter decision rules | 0 | 10 | ✅ PASS |
+| D5 | LayaRouter builds one question per topic | 0 | 7 | ✅ PASS |
 | D6 | LLMCardWriter prompt and parsing | 0 | 8 | ✅ PASS |
+| L1 | Laya exported recycled router | 0 | 5 | ✅ PASS |
+| L2 | Laya topic card formatting in criteria | 0 | 8 | ✅ PASS |
+| L3 | LayaSegmenter multi topic decision flow | 0 | 6 | ✅ PASS |
+| L4 | LayaRouter noul topic relevance batching | 0 | 7 | ✅ PASS |
+| L5 | Laya integrated ContextManager pipeline | 4 | 8 | ✅ PASS |
 | E1 | realistic conversation with the keyword deciders | 6 | 4 | ✅ PASS |
 | E2 | random conversations never break the invariants | 0 | 8 | ✅ PASS |
 
@@ -104,7 +109,7 @@
 - ✅ low_water of 0 is rejected (raised ValueError)
 - ✅ max_tokens=0 gives utilization 0.0 instead of dividing by zero — got `0.0`, expected `0.0`
 
-**Result: ✅ PASS**  (6 checks, 0 failed, 0 turns, 0.00s)
+**Result: ✅ PASS**  (6 checks, 0 failed, 0 turns, 0.01s)
 
 ---
 
@@ -339,7 +344,7 @@
 ### Turn 2: "capital of france lorem ipsum dolor sit amet lor"
 
 - **Reply (assistant)**: paris lorem ipsum dolor sit amet
-- **Events in prepare_context**: `closed topic 1, card: lorem / python / decorator`, `new topic 2`
+- **Events in prepare_context**: `closed topic 1, card: function / use / python`, `new topic 2`
 - **Events in record_reply**: none
 - ✅ **Invariants**: all 11 hold
 
@@ -347,7 +352,7 @@
 
 | ID | Status | Label | Key facts | Entities | Pages | Covered |
 |:-:|:-:|:--|:--|:--|:-:|:-:|
-| 1 | 🔴 closed | `lorem / python / decorator` | python decorators wrap functions lorem ipsum dol | lorem, python, decorator, function, wrap | `[0]` | 0 |
+| 1 | 🔴 closed | `function / use / python` | python decorators wrap functions lorem ipsum dol | function, use, python, closure, ipsum | `[0]` | 0 |
 | 2 | 🟢 open | `capital of france lorem ipsum dolor s...` | - | - | `[1]` | -1 |
 
 **Page table**
@@ -433,7 +438,7 @@
 ### Turn 2: "cooking pasta lorem ipsum dolor sit amet lorem i"
 
 - **Reply (assistant)**: lorem ipsum dolor sit amet lorem
-- **Events in prepare_context**: `closed topic 1, card: lorem / amet / sit`, `new topic 2`
+- **Events in prepare_context**: `closed topic 1, card: sit / ips / beach`, `new topic 2`
 - **Events in record_reply**: none
 - ✅ **Invariants**: all 11 hold
 
@@ -441,7 +446,7 @@
 
 | ID | Status | Label | Key facts | Entities | Pages | Covered |
 |:-:|:-:|:--|:--|:--|:-:|:-:|
-| 1 | 🔴 closed | `lorem / amet / sit` | goa beaches lorem ipsum dolor sit amet lorem ips | lorem, amet, sit, ips, dolor | `[0]` | 0 |
+| 1 | 🔴 closed | `sit / ips / beach` | goa beaches lorem ipsum dolor sit amet lorem ips | sit, ips, beach, ipsum, dolor | `[0]` | 0 |
 | 2 | 🟢 open | `cooking pasta lorem ipsum dolor sit a...` | - | - | `[1]` | -1 |
 
 **Page table**
@@ -475,7 +480,7 @@
 ### Turn 3: "best goa beach lorem ipsum dolor sit amet lorem "
 
 - **Reply (assistant)**: lorem ipsum dolor sit amet lorem
-- **Events in prepare_context**: `closed topic 2, card: lorem / pasta / cooking`, `return to topic 1 (lorem / amet / sit)`
+- **Events in prepare_context**: `closed topic 2, card: sit / pasta / ipsum`, `return to topic 1 (sit / ips / beach)`
 - **Events in record_reply**: none
 - ✅ **Invariants**: all 11 hold
 
@@ -483,8 +488,8 @@
 
 | ID | Status | Label | Key facts | Entities | Pages | Covered |
 |:-:|:-:|:--|:--|:--|:-:|:-:|
-| 1 | 🟢 open | `lorem / amet / sit` | goa beaches lorem ipsum dolor sit amet lorem ips | lorem, amet, sit, ips, dolor | `[0, 2]` | 0 |
-| 2 | 🔴 closed | `lorem / pasta / cooking` | cooking pasta lorem ipsum dolor sit amet lorem i | lorem, pasta, cooking, amet, sit | `[1]` | 1 |
+| 1 | 🟢 open | `sit / ips / beach` | goa beaches lorem ipsum dolor sit amet lorem ips | sit, ips, beach, ipsum, dolor | `[0, 2]` | 0 |
+| 2 | 🔴 closed | `sit / pasta / ipsum` | cooking pasta lorem ipsum dolor sit amet lorem i | sit, pasta, ipsum, dolor, lorem | `[1]` | 1 |
 
 **Page table**
 
@@ -527,7 +532,7 @@
 - ✅ a 'return to topic 1' event was logged
 - ✅ topic 2 (closed by the return) got its card written
 
-**Result: ✅ PASS**  (6 checks, 0 failed, 3 turns, 0.00s)
+**Result: ✅ PASS**  (6 checks, 0 failed, 3 turns, 0.01s)
 
 ---
 
@@ -692,7 +697,7 @@
 
 - ✅ one token under the limit: no split — got `[0]`, expected `[0]`
 
-**Result: ✅ PASS**  (6 checks, 0 failed, 4 turns, 0.00s)
+**Result: ✅ PASS**  (6 checks, 0 failed, 4 turns, 0.01s)
 
 ---
 
@@ -739,7 +744,7 @@
 ### Turn 2 [continue on first message, return without id]: "lorem ipsum dolor sit amet lorem ipsum d"
 
 - **Reply (assistant)**: lorem ipsum dolor si
-- **Events in prepare_context**: `closed topic 1, card: lorem / amet / sit`, `new topic 2`
+- **Events in prepare_context**: `closed topic 1, card: sit / ipsum / dolor`, `new topic 2`
 - **Events in record_reply**: none
 - ✅ **Invariants**: all 11 hold
 
@@ -747,7 +752,7 @@
 
 | ID | Status | Label | Key facts | Entities | Pages | Covered |
 |:-:|:-:|:--|:--|:--|:-:|:-:|
-| 1 | 🔴 closed | `lorem / amet / sit` | lorem ipsum dolor sit amet lorem ipsum d | lorem, amet, sit, dolor, ipsum | `[0]` | 0 |
+| 1 | 🔴 closed | `sit / ipsum / dolor` | lorem ipsum dolor sit amet lorem ipsum d | sit, ipsum, dolor, lorem, amet | `[0]` | 0 |
 | 2 | 🟢 open | `lorem ipsum dolor sit amet lorem ipsum d` | - | - | `[1]` | -1 |
 
 **Page table**
@@ -817,7 +822,7 @@
 ### Turn 2 [return to the topic that is already open]: "alpha lorem ipsum dolor sit amet lorem i"
 
 - **Reply (assistant)**: lorem ipsum dolor si
-- **Events in prepare_context**: `closed topic 1, card: lorem / amet / sit`, `return to topic 1 (lorem / amet / sit)`
+- **Events in prepare_context**: `closed topic 1, card: sit / alpha / ipsum`, `return to topic 1 (sit / alpha / ipsum)`
 - **Events in record_reply**: none
 - ✅ **Invariants**: all 11 hold
 
@@ -825,7 +830,7 @@
 
 | ID | Status | Label | Key facts | Entities | Pages | Covered |
 |:-:|:-:|:--|:--|:--|:-:|:-:|
-| 1 | 🟢 open | `lorem / amet / sit` | alpha lorem ipsum dolor sit amet lorem i | lorem, amet, sit, alpha, dolor | `[0, 1]` | 0 |
+| 1 | 🟢 open | `sit / alpha / ipsum` | alpha lorem ipsum dolor sit amet lorem i | sit, alpha, ipsum, dolor, lorem | `[0, 1]` | 0 |
 
 **Page table**
 
@@ -976,7 +981,7 @@
 ### Turn 2: "u1 lorem ipsum dolor sit amet lorem ipsu"
 
 - **Reply (assistant)**: r1 lorem ipsum dolor sit
-- **Events in prepare_context**: `closed topic 1, card: lorem / ipsu / amet`, `new topic 2`
+- **Events in prepare_context**: `closed topic 1, card: sit / ipsu / ipsum`, `new topic 2`
 - **Events in record_reply**: none
 - ✅ **Invariants**: all 11 hold
 
@@ -984,7 +989,7 @@
 
 | ID | Status | Label | Key facts | Entities | Pages | Covered |
 |:-:|:-:|:--|:--|:--|:-:|:-:|
-| 1 | 🔴 closed | `lorem / ipsu / amet` | u0 lorem ipsum dolor sit amet lorem ipsu | lorem, ipsu, amet, sit, dolor | `[0]` | 0 |
+| 1 | 🔴 closed | `sit / ipsu / ipsum` | u0 lorem ipsum dolor sit amet lorem ipsu | sit, ipsu, ipsum, dolor, lorem | `[0]` | 0 |
 | 2 | 🟢 open | `u1 lorem ipsum dolor sit amet lorem ipsu` | - | - | `[1]` | -1 |
 
 **Page table**
@@ -1026,7 +1031,7 @@
 
 | ID | Status | Label | Key facts | Entities | Pages | Covered |
 |:-:|:-:|:--|:--|:--|:-:|:-:|
-| 1 | 🔴 closed | `lorem / ipsu / amet` | u0 lorem ipsum dolor sit amet lorem ipsu | lorem, ipsu, amet, sit, dolor | `[0]` | 0 |
+| 1 | 🔴 closed | `sit / ipsu / ipsum` | u0 lorem ipsum dolor sit amet lorem ipsu | sit, ipsu, ipsum, dolor, lorem | `[0]` | 0 |
 | 2 | 🟢 open | `u1 lorem ipsum dolor sit amet lorem ipsu` | - | - | `[1]` | -1 |
 
 **Page table**
@@ -1064,7 +1069,7 @@
 ### Turn 4: "u3 lorem ipsum dolor sit amet lorem ipsu"
 
 - **Reply (assistant)**: r3 lorem ipsum dolor sit
-- **Events in prepare_context**: `closed topic 2, card: lorem / ipsu / amet`, `new topic 3`
+- **Events in prepare_context**: `closed topic 2, card: sit / ipsu / ipsum`, `new topic 3`
 - **Events in record_reply**: none
 - ✅ **Invariants**: all 11 hold
 
@@ -1072,8 +1077,8 @@
 
 | ID | Status | Label | Key facts | Entities | Pages | Covered |
 |:-:|:-:|:--|:--|:--|:-:|:-:|
-| 1 | 🔴 closed | `lorem / ipsu / amet` | u0 lorem ipsum dolor sit amet lorem ipsu | lorem, ipsu, amet, sit, dolor | `[0]` | 0 |
-| 2 | 🔴 closed | `lorem / ipsu / amet` | u1 lorem ipsum dolor sit amet lorem ipsu; u2 lorem ipsum ... | lorem, ipsu, amet, sit, dolor | `[1]` | 1 |
+| 1 | 🔴 closed | `sit / ipsu / ipsum` | u0 lorem ipsum dolor sit amet lorem ipsu | sit, ipsu, ipsum, dolor, lorem | `[0]` | 0 |
+| 2 | 🔴 closed | `sit / ipsu / ipsum` | u1 lorem ipsum dolor sit amet lorem ipsu; u2 lorem ipsum ... | sit, ipsu, ipsum, dolor, lorem | `[1]` | 1 |
 | 3 | 🟢 open | `u3 lorem ipsum dolor sit amet lorem ipsu` | - | - | `[2]` | -1 |
 
 **Page table**
@@ -1164,7 +1169,7 @@
 ### Turn 2: "user2 lorem ipsum dolor sit amet lorem i"
 
 - **Reply (assistant)**: reply2 lorem ipsum dolor
-- **Events in prepare_context**: `closed topic 1, card: lorem / amet / reply`, `new topic 2`
+- **Events in prepare_context**: `closed topic 1, card: sit / reply / ipsum`, `new topic 2`
 - **Events in record_reply**: none
 - ✅ **Invariants**: all 11 hold
 
@@ -1172,7 +1177,7 @@
 
 | ID | Status | Label | Key facts | Entities | Pages | Covered |
 |:-:|:-:|:--|:--|:--|:-:|:-:|
-| 1 | 🔴 closed | `lorem / amet / reply` | user1 lorem ipsum dolor sit amet lorem i | lorem, amet, reply, sit, dolor | `[0]` | 0 |
+| 1 | 🔴 closed | `sit / reply / ipsum` | user1 lorem ipsum dolor sit amet lorem i | sit, reply, ipsum, dolor, lorem | `[0]` | 0 |
 | 2 | 🟢 open | `user2 lorem ipsum dolor sit amet lorem i` | - | - | `[1]` | -1 |
 
 **Page table**
@@ -1206,7 +1211,7 @@
 ### Turn 3: "user3 lorem ipsum dolor sit amet lorem i"
 
 - **Reply (assistant)**: reply3 lorem ipsum dolor
-- **Events in prepare_context**: `closed topic 2, card: lorem / amet / reply`, `new topic 3`
+- **Events in prepare_context**: `closed topic 2, card: sit / reply / ipsum`, `new topic 3`
 - **Events in record_reply**: none
 - ✅ **Invariants**: all 11 hold
 
@@ -1214,8 +1219,8 @@
 
 | ID | Status | Label | Key facts | Entities | Pages | Covered |
 |:-:|:-:|:--|:--|:--|:-:|:-:|
-| 1 | 🔴 closed | `lorem / amet / reply` | user1 lorem ipsum dolor sit amet lorem i | lorem, amet, reply, sit, dolor | `[0]` | 0 |
-| 2 | 🔴 closed | `lorem / amet / reply` | user2 lorem ipsum dolor sit amet lorem i | lorem, amet, reply, sit, dolor | `[1]` | 1 |
+| 1 | 🔴 closed | `sit / reply / ipsum` | user1 lorem ipsum dolor sit amet lorem i | sit, reply, ipsum, dolor, lorem | `[0]` | 0 |
+| 2 | 🔴 closed | `sit / reply / ipsum` | user2 lorem ipsum dolor sit amet lorem i | sit, reply, ipsum, dolor, lorem | `[1]` | 1 |
 | 3 | 🟢 open | `user3 lorem ipsum dolor sit amet lorem i` | - | - | `[2]` | -1 |
 
 **Page table**
@@ -1255,7 +1260,7 @@
 ### Turn 4: "user4 lorem ipsum dolor sit amet lorem i"
 
 - **Reply (assistant)**: reply4 lorem ipsum dolor
-- **Events in prepare_context**: `closed topic 3, card: lorem / amet / reply`, `new topic 4`
+- **Events in prepare_context**: `closed topic 3, card: sit / reply / ipsum`, `new topic 4`
 - **Events in record_reply**: none
 - ✅ **Invariants**: all 11 hold
 
@@ -1263,9 +1268,9 @@
 
 | ID | Status | Label | Key facts | Entities | Pages | Covered |
 |:-:|:-:|:--|:--|:--|:-:|:-:|
-| 1 | 🔴 closed | `lorem / amet / reply` | user1 lorem ipsum dolor sit amet lorem i | lorem, amet, reply, sit, dolor | `[0]` | 0 |
-| 2 | 🔴 closed | `lorem / amet / reply` | user2 lorem ipsum dolor sit amet lorem i | lorem, amet, reply, sit, dolor | `[1]` | 1 |
-| 3 | 🔴 closed | `lorem / amet / reply` | user3 lorem ipsum dolor sit amet lorem i | lorem, amet, reply, sit, dolor | `[2]` | 2 |
+| 1 | 🔴 closed | `sit / reply / ipsum` | user1 lorem ipsum dolor sit amet lorem i | sit, reply, ipsum, dolor, lorem | `[0]` | 0 |
+| 2 | 🔴 closed | `sit / reply / ipsum` | user2 lorem ipsum dolor sit amet lorem i | sit, reply, ipsum, dolor, lorem | `[1]` | 1 |
+| 3 | 🔴 closed | `sit / reply / ipsum` | user3 lorem ipsum dolor sit amet lorem i | sit, reply, ipsum, dolor, lorem | `[2]` | 2 |
 | 4 | 🟢 open | `user4 lorem ipsum dolor sit amet lorem i` | - | - | `[3]` | -1 |
 
 **Page table**
@@ -1311,7 +1316,7 @@
 - ✅ on turn 4 the router saw exactly the last 4 messages before the new one (user2, reply2, user3, reply3) — got `['user2 lorem ipsum dolor sit amet lorem i', 'reply2 lorem ipsum dolor', 'user3 lorem ipsum dolor sit amet lorem i', 'reply3 lorem ipsum dolor']`, expected `['user2 lorem ipsum dolor sit amet lorem i', 'reply2 lorem ipsum dolor', 'user3 lorem ipsum dolor sit amet lorem i', 'reply3 lorem ipsum dolor']`
 - ✅ and the new message separately — got `'user4 lorem ipsum dolor sit amet lorem i'`, expected `'user4 lorem ipsum dolor sit amet lorem i'`
 
-**Result: ✅ PASS**  (2 checks, 0 failed, 4 turns, 0.00s)
+**Result: ✅ PASS**  (2 checks, 0 failed, 4 turns, 0.01s)
 
 ---
 
@@ -1357,7 +1362,7 @@
 ### Turn 2 [score 0.50]: "lorem ipsum dolor sit amet lorem ipsum dolor sit amet lorem ipsum dolor sit amet lorem ipsum dolor s"
 
 - **Reply (assistant)**: lorem ipsum dolor si
-- **Events in prepare_context**: `closed topic 1, card: lorem / amet / sit`, `new topic 2`, `move page 0: L1 -> L2`
+- **Events in prepare_context**: `closed topic 1, card: sit / ipsum / dolor`, `new topic 2`, `move page 0: L1 -> L2`
 - **Events in record_reply**: none
 - ✅ **Invariants**: all 11 hold
 
@@ -1365,7 +1370,7 @@
 
 | ID | Status | Label | Key facts | Entities | Pages | Covered |
 |:-:|:-:|:--|:--|:--|:-:|:-:|
-| 1 | 🔴 closed | `lorem / amet / sit` | lorem ipsum dolor sit amet lorem ipsum dolor sit amet lorem  | lorem, amet, sit, dolor, ipsum | `[0]` | 0 |
+| 1 | 🔴 closed | `sit / ipsum / dolor` | lorem ipsum dolor sit amet lorem ipsum dolor sit amet lorem  | sit, ipsum, dolor, lorem, amet | `[0]` | 0 |
 | 2 | 🟢 open | `lorem ipsum dolor sit amet lorem ipsu...` | - | - | `[1]` | -1 |
 
 **Page table**
@@ -1407,7 +1412,7 @@
 
 | ID | Status | Label | Key facts | Entities | Pages | Covered |
 |:-:|:-:|:--|:--|:--|:-:|:-:|
-| 1 | 🔴 closed | `lorem / amet / sit` | lorem ipsum dolor sit amet lorem ipsum dolor sit amet lorem  | lorem, amet, sit, dolor, ipsum | `[0]` | 0 |
+| 1 | 🔴 closed | `sit / ipsum / dolor` | lorem ipsum dolor sit amet lorem ipsum dolor sit amet lorem  | sit, ipsum, dolor, lorem, amet | `[0]` | 0 |
 | 2 | 🟢 open | `lorem ipsum dolor sit amet lorem ipsu...` | - | - | `[1]` | -1 |
 
 **Page table**
@@ -1481,7 +1486,7 @@
 ### Turn 2 [score 0.49]: "lorem ipsum dolor sit amet lorem ipsum dolor sit amet lorem ipsum dolor sit amet lorem ipsum dolor s"
 
 - **Reply (assistant)**: lorem ipsum dolor si
-- **Events in prepare_context**: `closed topic 1, card: lorem / amet / sit`, `new topic 2`, `move page 0: L1 -> L2`
+- **Events in prepare_context**: `closed topic 1, card: sit / ipsum / dolor`, `new topic 2`, `move page 0: L1 -> L2`
 - **Events in record_reply**: none
 - ✅ **Invariants**: all 11 hold
 
@@ -1489,7 +1494,7 @@
 
 | ID | Status | Label | Key facts | Entities | Pages | Covered |
 |:-:|:-:|:--|:--|:--|:-:|:-:|
-| 1 | 🔴 closed | `lorem / amet / sit` | lorem ipsum dolor sit amet lorem ipsum dolor sit amet lorem  | lorem, amet, sit, dolor, ipsum | `[0]` | 0 |
+| 1 | 🔴 closed | `sit / ipsum / dolor` | lorem ipsum dolor sit amet lorem ipsum dolor sit amet lorem  | sit, ipsum, dolor, lorem, amet | `[0]` | 0 |
 | 2 | 🟢 open | `lorem ipsum dolor sit amet lorem ipsu...` | - | - | `[1]` | -1 |
 
 **Page table**
@@ -1531,7 +1536,7 @@
 
 | ID | Status | Label | Key facts | Entities | Pages | Covered |
 |:-:|:-:|:--|:--|:--|:-:|:-:|
-| 1 | 🔴 closed | `lorem / amet / sit` | lorem ipsum dolor sit amet lorem ipsum dolor sit amet lorem  | lorem, amet, sit, dolor, ipsum | `[0]` | 0 |
+| 1 | 🔴 closed | `sit / ipsum / dolor` | lorem ipsum dolor sit amet lorem ipsum dolor sit amet lorem  | sit, ipsum, dolor, lorem, amet | `[0]` | 0 |
 | 2 | 🟢 open | `lorem ipsum dolor sit amet lorem ipsu...` | - | - | `[1]` | -1 |
 
 **Page table**
@@ -1613,7 +1618,7 @@
 ### Turn 2: "lorem ipsum dolor sit amet lorem ipsum d"
 
 - **Reply (assistant)**: lorem ipsum dolor si
-- **Events in prepare_context**: `closed topic 1, card: lorem / amet / sit`, `new topic 2`
+- **Events in prepare_context**: `closed topic 1, card: sit / ipsum / dolor`, `new topic 2`
 - **Events in record_reply**: none
 - ✅ **Invariants**: all 11 hold
 
@@ -1621,7 +1626,7 @@
 
 | ID | Status | Label | Key facts | Entities | Pages | Covered |
 |:-:|:-:|:--|:--|:--|:-:|:-:|
-| 1 | 🔴 closed | `lorem / amet / sit` | lorem ipsum dolor sit amet lorem ipsum d | lorem, amet, sit, dolor, ipsum | `[0]` | 0 |
+| 1 | 🔴 closed | `sit / ipsum / dolor` | lorem ipsum dolor sit amet lorem ipsum d | sit, ipsum, dolor, lorem, amet | `[0]` | 0 |
 | 2 | 🟢 open | `lorem ipsum dolor sit amet lorem ipsum d` | - | - | `[1]` | -1 |
 
 **Page table**
@@ -1701,7 +1706,7 @@
 ### Turn 2: "beta lorem ipsum dolor sit amet lorem ipsum dolor sit amet lorem ipsum dolor sit amet lorem ipsum do"
 
 - **Reply (assistant)**: lorem ipsum dolor si
-- **Events in prepare_context**: `closed topic 1, card: lorem / question / amet`, `new topic 2`, `move page 0: L1 -> L2`
+- **Events in prepare_context**: `closed topic 1, card: sit / alpha / topic`, `new topic 2`, `move page 0: L1 -> L2`
 - **Events in record_reply**: none
 - ✅ **Invariants**: all 11 hold
 
@@ -1709,7 +1714,7 @@
 
 | ID | Status | Label | Key facts | Entities | Pages | Covered |
 |:-:|:-:|:--|:--|:--|:-:|:-:|
-| 1 | 🔴 closed | `lorem / question / amet` | alpha topic question lorem ipsum dolor sit amet lorem ipsum  | lorem, question, amet, sit, answer | `[0]` | 0 |
+| 1 | 🔴 closed | `sit / alpha / topic` | alpha topic question lorem ipsum dolor sit amet lorem ipsum  | sit, alpha, topic, lorem, ipsum | `[0]` | 0 |
 | 2 | 🟢 open | `beta lorem ipsum dolor sit amet lorem...` | - | - | `[1]` | -1 |
 
 **Page table**
@@ -1743,7 +1748,7 @@
 ### Turn 3: "back to alpha lorem ipsum dolor sit amet"
 
 - **Reply (assistant)**: lorem ipsum dolor sit amet lorem ipsum d
-- **Events in prepare_context**: `closed topic 2, card: beta / lorem / amet`, `return to topic 1 (lorem / question / amet)`, `move page 0: L2 -> L1`, `move page 1: L1 -> L2`
+- **Events in prepare_context**: `closed topic 2, card: sit / beta / ipsum`, `return to topic 1 (sit / alpha / topic)`, `move page 0: L2 -> L1`, `move page 1: L1 -> L2`
 - **Events in record_reply**: none
 - ✅ **Invariants**: all 11 hold
 
@@ -1751,8 +1756,8 @@
 
 | ID | Status | Label | Key facts | Entities | Pages | Covered |
 |:-:|:-:|:--|:--|:--|:-:|:-:|
-| 1 | 🟢 open | `lorem / question / amet` | alpha topic question lorem ipsum dolor sit amet lorem ipsum  | lorem, question, amet, sit, answer | `[0, 2]` | 0 |
-| 2 | 🔴 closed | `beta / lorem / amet` | beta lorem ipsum dolor sit amet lorem ipsum dolor sit ame... | beta, lorem, amet, sit, dolor | `[1]` | 1 |
+| 1 | 🟢 open | `sit / alpha / topic` | alpha topic question lorem ipsum dolor sit amet lorem ipsum  | sit, alpha, topic, lorem, ipsum | `[0, 2]` | 0 |
+| 2 | 🔴 closed | `sit / beta / ipsum` | beta lorem ipsum dolor sit amet lorem ipsum dolor sit ame... | sit, beta, ipsum, dolor, lorem | `[1]` | 1 |
 
 **Page table**
 
@@ -1794,7 +1799,7 @@
 - ✅ a gap marker sits between old page 0 and the new page 2 (page 1 is missing) — got `2`, expected `2`
 - ✅ topic 1 lists pages [0, 2] — got `[0, 2]`, expected `[0, 2]`
 
-**Result: ✅ PASS**  (7 checks, 0 failed, 3 turns, 0.00s)
+**Result: ✅ PASS**  (7 checks, 0 failed, 3 turns, 0.01s)
 
 ---
 
@@ -1881,7 +1886,7 @@
 ### Turn 3: "c lorem ipsum dolor sit amet lorem ipsum dolor sit amet lorem ipsum dolor sit amet lorem ipsum dolor sit am..."
 
 - **Reply (assistant)**: lorem ipsum dolor sit amet lorem ipsum d
-- **Events in prepare_context**: `closed topic 1, card: lorem / amet / sit`, `new topic 2`, `move page 0: L1 -> L2`, `move page 1: L1 -> L2`
+- **Events in prepare_context**: `closed topic 1, card: sit / ipsum / dolor`, `new topic 2`, `move page 0: L1 -> L2`, `move page 1: L1 -> L2`
 - **Events in record_reply**: none
 - ✅ **Invariants**: all 11 hold
 
@@ -1889,7 +1894,7 @@
 
 | ID | Status | Label | Key facts | Entities | Pages | Covered |
 |:-:|:-:|:--|:--|:--|:-:|:-:|
-| 1 | 🔴 closed | `lorem / amet / sit` | a lorem ipsum dolor sit amet lorem ipsum; b lorem ipsum d... | lorem, amet, sit, dolor, ipsum | `[0, 1]` | 1 |
+| 1 | 🔴 closed | `sit / ipsum / dolor` | a lorem ipsum dolor sit amet lorem ipsum; b lorem ipsum d... | sit, ipsum, dolor, lorem, amet | `[0, 1]` | 1 |
 | 2 | 🟢 open | `c lorem ipsum dolor sit amet lorem ip...` | - | - | `[2]` | -1 |
 
 **Page table**
@@ -1927,7 +1932,7 @@
 ### Turn 4: "d lorem ipsum dolor sit amet lorem ipsum"
 
 - **Reply (assistant)**: lorem ipsum dolor si
-- **Events in prepare_context**: `closed topic 2, card: lorem / ipsu / amet`, `return to topic 1 (lorem / amet / sit)`, `move page 1: L2 -> L1`, `no room for page 0 of topic 1`
+- **Events in prepare_context**: `closed topic 2, card: sit / ipsu / ipsum`, `return to topic 1 (sit / ipsum / dolor)`, `move page 1: L2 -> L1`, `no room for page 0 of topic 1`
 - **Events in record_reply**: none
 - ✅ **Invariants**: all 11 hold
 
@@ -1935,8 +1940,8 @@
 
 | ID | Status | Label | Key facts | Entities | Pages | Covered |
 |:-:|:-:|:--|:--|:--|:-:|:-:|
-| 1 | 🟢 open | `lorem / amet / sit` | a lorem ipsum dolor sit amet lorem ipsum; b lorem ipsum d... | lorem, amet, sit, dolor, ipsum | `[0, 1, 3]` | 1 |
-| 2 | 🔴 closed | `lorem / ipsu / amet` | c lorem ipsum dolor sit amet lorem ipsum dolor sit amet l... | lorem, ipsu, amet, sit, dolor | `[2]` | 2 |
+| 1 | 🟢 open | `sit / ipsum / dolor` | a lorem ipsum dolor sit amet lorem ipsum; b lorem ipsum d... | sit, ipsum, dolor, lorem, amet | `[0, 1, 3]` | 1 |
+| 2 | 🔴 closed | `sit / ipsu / ipsum` | c lorem ipsum dolor sit amet lorem ipsum dolor sit amet l... | sit, ipsu, ipsum, dolor, lorem | `[2]` | 2 |
 
 **Page table**
 
@@ -2028,7 +2033,7 @@
 ### Turn 2: "topic two lorem ipsum dolor sit amet lorem ipsum dolor sit amet lorem ipsum dolor sit amet lorem ipsum dolo..."
 
 - **Reply (assistant)**: lorem ipsum dolor sit amet lorem ipsum dolor sit amet lorem ipsum dolor sit amet
-- **Events in prepare_context**: `closed topic 1, card: lorem / amet / sit`, `new topic 2`, `move page 0: L1 -> L2`
+- **Events in prepare_context**: `closed topic 1, card: sit / big / ipsum`, `new topic 2`, `move page 0: L1 -> L2`
 - **Events in record_reply**: none
 - ✅ **Invariants**: all 11 hold
 
@@ -2036,7 +2041,7 @@
 
 | ID | Status | Label | Key facts | Entities | Pages | Covered |
 |:-:|:-:|:--|:--|:--|:-:|:-:|
-| 1 | 🔴 closed | `lorem / amet / sit` | big lorem ipsum dolor sit amet lorem ipsum dolor sit amet... | lorem, amet, sit, dolor, big | `[0]` | 0 |
+| 1 | 🔴 closed | `sit / big / ipsum` | big lorem ipsum dolor sit amet lorem ipsum dolor sit amet... | sit, big, ipsum, dolor, lorem | `[0]` | 0 |
 | 2 | 🟢 open | `topic two lorem ipsum dolor sit amet ...` | - | - | `[1]` | -1 |
 
 **Page table**
@@ -2078,7 +2083,7 @@
 
 | ID | Status | Label | Key facts | Entities | Pages | Covered |
 |:-:|:-:|:--|:--|:--|:-:|:-:|
-| 1 | 🔴 closed | `lorem / amet / sit` | big lorem ipsum dolor sit amet lorem ipsum dolor sit amet... | lorem, amet, sit, dolor, big | `[0]` | 0 |
+| 1 | 🔴 closed | `sit / big / ipsum` | big lorem ipsum dolor sit amet lorem ipsum dolor sit amet... | sit, big, ipsum, dolor, lorem | `[0]` | 0 |
 | 2 | 🟢 open | `topic two lorem ipsum dolor sit amet ...` | - | - | `[1]` | -1 |
 
 **Page table**
@@ -2162,7 +2167,7 @@
 ### Turn 2: "two lorem ipsum dolor sit amet lorem ips"
 
 - **Reply (assistant)**: lorem ipsum dolor si
-- **Events in prepare_context**: `closed topic 1, card: lorem / amet / sit`, `new topic 2`
+- **Events in prepare_context**: `closed topic 1, card: sit / ips / one`, `new topic 2`
 - **Events in record_reply**: none
 - ✅ **Invariants**: all 11 hold
 
@@ -2170,7 +2175,7 @@
 
 | ID | Status | Label | Key facts | Entities | Pages | Covered |
 |:-:|:-:|:--|:--|:--|:-:|:-:|
-| 1 | 🔴 closed | `lorem / amet / sit` | one lorem ipsum dolor sit amet lorem ips | lorem, amet, sit, ips, dolor | `[0]` | 0 |
+| 1 | 🔴 closed | `sit / ips / one` | one lorem ipsum dolor sit amet lorem ips | sit, ips, one, ipsum, dolor | `[0]` | 0 |
 | 2 | 🟢 open | `two lorem ipsum dolor sit amet lorem ips` | - | - | `[1]` | -1 |
 
 **Page table**
@@ -2204,7 +2209,7 @@
 ### Turn 3: "back to one lorem ipsum dolor sit amet l"
 
 - **Reply (assistant)**: lorem ipsum dolor si
-- **Events in prepare_context**: `closed topic 2, card: lorem / amet / sit`, `return to topic 1 (lorem / amet / sit)`
+- **Events in prepare_context**: `closed topic 2, card: sit / ips / ipsum`, `return to topic 1 (sit / ips / one)`
 - **Events in record_reply**: none
 - ✅ **Invariants**: all 11 hold
 
@@ -2212,8 +2217,8 @@
 
 | ID | Status | Label | Key facts | Entities | Pages | Covered |
 |:-:|:-:|:--|:--|:--|:-:|:-:|
-| 1 | 🟢 open | `lorem / amet / sit` | one lorem ipsum dolor sit amet lorem ips | lorem, amet, sit, ips, dolor | `[0, 2]` | 0 |
-| 2 | 🔴 closed | `lorem / amet / sit` | two lorem ipsum dolor sit amet lorem ips | lorem, amet, sit, ips, dolor | `[1]` | 1 |
+| 1 | 🟢 open | `sit / ips / one` | one lorem ipsum dolor sit amet lorem ips | sit, ips, one, ipsum, dolor | `[0, 2]` | 0 |
+| 2 | 🔴 closed | `sit / ips / ipsum` | two lorem ipsum dolor sit amet lorem ips | sit, ips, ipsum, dolor, lorem | `[1]` | 1 |
 
 **Page table**
 
@@ -2299,7 +2304,7 @@
 ### Turn 2: "t2 lorem ipsum dolor sit amet lo"
 
 - **Reply (assistant)**: lorem ipsum dolor sit amet lorem
-- **Events in prepare_context**: `closed topic 1, card: lorem / amet / sit`, `new topic 2`
+- **Events in prepare_context**: `closed topic 1, card: sit / ipsum / dolor`, `new topic 2`
 - **Events in record_reply**: none
 - ✅ **Invariants**: all 11 hold
 
@@ -2307,7 +2312,7 @@
 
 | ID | Status | Label | Key facts | Entities | Pages | Covered |
 |:-:|:-:|:--|:--|:--|:-:|:-:|
-| 1 | 🔴 closed | `lorem / amet / sit` | t1 lorem ipsum dolor sit amet lo | lorem, amet, sit, dolor, ipsum | `[0]` | 0 |
+| 1 | 🔴 closed | `sit / ipsum / dolor` | t1 lorem ipsum dolor sit amet lo | sit, ipsum, dolor, lorem, amet | `[0]` | 0 |
 | 2 | 🟢 open | `t2 lorem ipsum dolor sit amet lo` | - | - | `[1]` | -1 |
 
 **Page table**
@@ -2342,7 +2347,7 @@
 ### Turn 3: "t3 lorem ipsum dolor sit amet lo"
 
 - **Reply (assistant)**: lorem ipsum dolor sit amet lorem
-- **Events in prepare_context**: `closed topic 2, card: lorem / amet / sit`, `new topic 3`
+- **Events in prepare_context**: `closed topic 2, card: sit / ipsum / dolor`, `new topic 3`
 - **Events in record_reply**: none
 - ✅ **Invariants**: all 11 hold
 
@@ -2350,8 +2355,8 @@
 
 | ID | Status | Label | Key facts | Entities | Pages | Covered |
 |:-:|:-:|:--|:--|:--|:-:|:-:|
-| 1 | 🔴 closed | `lorem / amet / sit` | t1 lorem ipsum dolor sit amet lo | lorem, amet, sit, dolor, ipsum | `[0]` | 0 |
-| 2 | 🔴 closed | `lorem / amet / sit` | t2 lorem ipsum dolor sit amet lo | lorem, amet, sit, dolor, ipsum | `[1]` | 1 |
+| 1 | 🔴 closed | `sit / ipsum / dolor` | t1 lorem ipsum dolor sit amet lo | sit, ipsum, dolor, lorem, amet | `[0]` | 0 |
+| 2 | 🔴 closed | `sit / ipsum / dolor` | t2 lorem ipsum dolor sit amet lo | sit, ipsum, dolor, lorem, amet | `[1]` | 1 |
 | 3 | 🟢 open | `t3 lorem ipsum dolor sit amet lo` | - | - | `[2]` | -1 |
 
 **Page table**
@@ -2392,7 +2397,7 @@
 ### Turn 4: "t4 lorem ipsum dolor sit amet lo"
 
 - **Reply (assistant)**: lorem ipsum dolor sit amet lorem
-- **Events in prepare_context**: `closed topic 3, card: lorem / amet / sit`, `new topic 4`
+- **Events in prepare_context**: `closed topic 3, card: sit / ipsum / dolor`, `new topic 4`
 - **Events in record_reply**: none
 - ✅ **Invariants**: all 11 hold
 
@@ -2400,9 +2405,9 @@
 
 | ID | Status | Label | Key facts | Entities | Pages | Covered |
 |:-:|:-:|:--|:--|:--|:-:|:-:|
-| 1 | 🔴 closed | `lorem / amet / sit` | t1 lorem ipsum dolor sit amet lo | lorem, amet, sit, dolor, ipsum | `[0]` | 0 |
-| 2 | 🔴 closed | `lorem / amet / sit` | t2 lorem ipsum dolor sit amet lo | lorem, amet, sit, dolor, ipsum | `[1]` | 1 |
-| 3 | 🔴 closed | `lorem / amet / sit` | t3 lorem ipsum dolor sit amet lo | lorem, amet, sit, dolor, ipsum | `[2]` | 2 |
+| 1 | 🔴 closed | `sit / ipsum / dolor` | t1 lorem ipsum dolor sit amet lo | sit, ipsum, dolor, lorem, amet | `[0]` | 0 |
+| 2 | 🔴 closed | `sit / ipsum / dolor` | t2 lorem ipsum dolor sit amet lo | sit, ipsum, dolor, lorem, amet | `[1]` | 1 |
+| 3 | 🔴 closed | `sit / ipsum / dolor` | t3 lorem ipsum dolor sit amet lo | sit, ipsum, dolor, lorem, amet | `[2]` | 2 |
 | 4 | 🟢 open | `t4 lorem ipsum dolor sit amet lo` | - | - | `[3]` | -1 |
 
 **Page table**
@@ -2449,7 +2454,7 @@
 ### Turn 5: "t5 lorem ipsum dolor sit amet lo"
 
 - **Reply (assistant)**: lorem ipsum dolor sit amet lorem
-- **Events in prepare_context**: `closed topic 4, card: lorem / amet / sit`, `new topic 5`
+- **Events in prepare_context**: `closed topic 4, card: sit / ipsum / dolor`, `new topic 5`
 - **Events in record_reply**: none
 - ✅ **Invariants**: all 11 hold
 
@@ -2457,10 +2462,10 @@
 
 | ID | Status | Label | Key facts | Entities | Pages | Covered |
 |:-:|:-:|:--|:--|:--|:-:|:-:|
-| 1 | 🔴 closed | `lorem / amet / sit` | t1 lorem ipsum dolor sit amet lo | lorem, amet, sit, dolor, ipsum | `[0]` | 0 |
-| 2 | 🔴 closed | `lorem / amet / sit` | t2 lorem ipsum dolor sit amet lo | lorem, amet, sit, dolor, ipsum | `[1]` | 1 |
-| 3 | 🔴 closed | `lorem / amet / sit` | t3 lorem ipsum dolor sit amet lo | lorem, amet, sit, dolor, ipsum | `[2]` | 2 |
-| 4 | 🔴 closed | `lorem / amet / sit` | t4 lorem ipsum dolor sit amet lo | lorem, amet, sit, dolor, ipsum | `[3]` | 3 |
+| 1 | 🔴 closed | `sit / ipsum / dolor` | t1 lorem ipsum dolor sit amet lo | sit, ipsum, dolor, lorem, amet | `[0]` | 0 |
+| 2 | 🔴 closed | `sit / ipsum / dolor` | t2 lorem ipsum dolor sit amet lo | sit, ipsum, dolor, lorem, amet | `[1]` | 1 |
+| 3 | 🔴 closed | `sit / ipsum / dolor` | t3 lorem ipsum dolor sit amet lo | sit, ipsum, dolor, lorem, amet | `[2]` | 2 |
+| 4 | 🔴 closed | `sit / ipsum / dolor` | t4 lorem ipsum dolor sit amet lo | sit, ipsum, dolor, lorem, amet | `[3]` | 3 |
 | 5 | 🟢 open | `t5 lorem ipsum dolor sit amet lo` | - | - | `[4]` | -1 |
 
 **Page table**
@@ -2559,7 +2564,7 @@
 ### Turn 2 [fill]: "t2 lorem ipsum dolor sit amet lo"
 
 - **Reply (assistant)**: lorem ipsum dolor sit amet lorem
-- **Events in prepare_context**: `closed topic 1, card: lorem / amet / sit`, `new topic 2`
+- **Events in prepare_context**: `closed topic 1, card: sit / ipsum / dolor`, `new topic 2`
 - **Events in record_reply**: none
 - ✅ **Invariants**: all 11 hold
 
@@ -2567,7 +2572,7 @@
 
 | ID | Status | Label | Key facts | Entities | Pages | Covered |
 |:-:|:-:|:--|:--|:--|:-:|:-:|
-| 1 | 🔴 closed | `lorem / amet / sit` | t1 lorem ipsum dolor sit amet lo | lorem, amet, sit, dolor, ipsum | `[0]` | 0 |
+| 1 | 🔴 closed | `sit / ipsum / dolor` | t1 lorem ipsum dolor sit amet lo | sit, ipsum, dolor, lorem, amet | `[0]` | 0 |
 | 2 | 🟢 open | `t2 lorem ipsum dolor sit amet lo` | - | - | `[1]` | -1 |
 
 **Page table**
@@ -2602,7 +2607,7 @@
 ### Turn 3 [fill]: "t3 lorem ipsum dolor sit amet lo"
 
 - **Reply (assistant)**: lorem ipsum dolor sit amet lorem
-- **Events in prepare_context**: `closed topic 2, card: lorem / amet / sit`, `new topic 3`
+- **Events in prepare_context**: `closed topic 2, card: sit / ipsum / dolor`, `new topic 3`
 - **Events in record_reply**: none
 - ✅ **Invariants**: all 11 hold
 
@@ -2610,8 +2615,8 @@
 
 | ID | Status | Label | Key facts | Entities | Pages | Covered |
 |:-:|:-:|:--|:--|:--|:-:|:-:|
-| 1 | 🔴 closed | `lorem / amet / sit` | t1 lorem ipsum dolor sit amet lo | lorem, amet, sit, dolor, ipsum | `[0]` | 0 |
-| 2 | 🔴 closed | `lorem / amet / sit` | t2 lorem ipsum dolor sit amet lo | lorem, amet, sit, dolor, ipsum | `[1]` | 1 |
+| 1 | 🔴 closed | `sit / ipsum / dolor` | t1 lorem ipsum dolor sit amet lo | sit, ipsum, dolor, lorem, amet | `[0]` | 0 |
+| 2 | 🔴 closed | `sit / ipsum / dolor` | t2 lorem ipsum dolor sit amet lo | sit, ipsum, dolor, lorem, amet | `[1]` | 1 |
 | 3 | 🟢 open | `t3 lorem ipsum dolor sit amet lo` | - | - | `[2]` | -1 |
 
 **Page table**
@@ -2652,7 +2657,7 @@
 ### Turn 4 [fill]: "t4 lorem ipsum dolor sit amet lo"
 
 - **Reply (assistant)**: lorem ipsum dolor sit amet lorem
-- **Events in prepare_context**: `closed topic 3, card: lorem / amet / sit`, `new topic 4`
+- **Events in prepare_context**: `closed topic 3, card: sit / ipsum / dolor`, `new topic 4`
 - **Events in record_reply**: none
 - ✅ **Invariants**: all 11 hold
 
@@ -2660,9 +2665,9 @@
 
 | ID | Status | Label | Key facts | Entities | Pages | Covered |
 |:-:|:-:|:--|:--|:--|:-:|:-:|
-| 1 | 🔴 closed | `lorem / amet / sit` | t1 lorem ipsum dolor sit amet lo | lorem, amet, sit, dolor, ipsum | `[0]` | 0 |
-| 2 | 🔴 closed | `lorem / amet / sit` | t2 lorem ipsum dolor sit amet lo | lorem, amet, sit, dolor, ipsum | `[1]` | 1 |
-| 3 | 🔴 closed | `lorem / amet / sit` | t3 lorem ipsum dolor sit amet lo | lorem, amet, sit, dolor, ipsum | `[2]` | 2 |
+| 1 | 🔴 closed | `sit / ipsum / dolor` | t1 lorem ipsum dolor sit amet lo | sit, ipsum, dolor, lorem, amet | `[0]` | 0 |
+| 2 | 🔴 closed | `sit / ipsum / dolor` | t2 lorem ipsum dolor sit amet lo | sit, ipsum, dolor, lorem, amet | `[1]` | 1 |
+| 3 | 🔴 closed | `sit / ipsum / dolor` | t3 lorem ipsum dolor sit amet lo | sit, ipsum, dolor, lorem, amet | `[2]` | 2 |
 | 4 | 🟢 open | `t4 lorem ipsum dolor sit amet lo` | - | - | `[3]` | -1 |
 
 **Page table**
@@ -2709,7 +2714,7 @@
 ### Turn 5 [fill]: "t5 lorem ipsum dolor sit amet lo"
 
 - **Reply (assistant)**: lorem ipsum dolor sit amet lorem
-- **Events in prepare_context**: `closed topic 4, card: lorem / amet / sit`, `new topic 5`
+- **Events in prepare_context**: `closed topic 4, card: sit / ipsum / dolor`, `new topic 5`
 - **Events in record_reply**: none
 - ✅ **Invariants**: all 11 hold
 
@@ -2717,10 +2722,10 @@
 
 | ID | Status | Label | Key facts | Entities | Pages | Covered |
 |:-:|:-:|:--|:--|:--|:-:|:-:|
-| 1 | 🔴 closed | `lorem / amet / sit` | t1 lorem ipsum dolor sit amet lo | lorem, amet, sit, dolor, ipsum | `[0]` | 0 |
-| 2 | 🔴 closed | `lorem / amet / sit` | t2 lorem ipsum dolor sit amet lo | lorem, amet, sit, dolor, ipsum | `[1]` | 1 |
-| 3 | 🔴 closed | `lorem / amet / sit` | t3 lorem ipsum dolor sit amet lo | lorem, amet, sit, dolor, ipsum | `[2]` | 2 |
-| 4 | 🔴 closed | `lorem / amet / sit` | t4 lorem ipsum dolor sit amet lo | lorem, amet, sit, dolor, ipsum | `[3]` | 3 |
+| 1 | 🔴 closed | `sit / ipsum / dolor` | t1 lorem ipsum dolor sit amet lo | sit, ipsum, dolor, lorem, amet | `[0]` | 0 |
+| 2 | 🔴 closed | `sit / ipsum / dolor` | t2 lorem ipsum dolor sit amet lo | sit, ipsum, dolor, lorem, amet | `[1]` | 1 |
+| 3 | 🔴 closed | `sit / ipsum / dolor` | t3 lorem ipsum dolor sit amet lo | sit, ipsum, dolor, lorem, amet | `[2]` | 2 |
+| 4 | 🔴 closed | `sit / ipsum / dolor` | t4 lorem ipsum dolor sit amet lo | sit, ipsum, dolor, lorem, amet | `[3]` | 3 |
 | 5 | 🟢 open | `t5 lorem ipsum dolor sit amet lo` | - | - | `[4]` | -1 |
 
 **Page table**
@@ -2773,7 +2778,7 @@
 ### Turn 6 [fill]: "t6 lorem ipsum dolor sit amet lorem ipsu"
 
 - **Reply (assistant)**: lorem ipsum dolor sit amet lorem
-- **Events in prepare_context**: `closed topic 5, card: lorem / amet / sit`, `new topic 6`, `move page 0: L1 -> L2`, `move page 1: L1 -> L2`, `move page 2: L1 -> L2`
+- **Events in prepare_context**: `closed topic 5, card: sit / ipsum / dolor`, `new topic 6`, `move page 0: L1 -> L2`, `move page 1: L1 -> L2`, `move page 2: L1 -> L2`
 - **Events in record_reply**: none
 - ✅ **Invariants**: all 11 hold
 
@@ -2781,11 +2786,11 @@
 
 | ID | Status | Label | Key facts | Entities | Pages | Covered |
 |:-:|:-:|:--|:--|:--|:-:|:-:|
-| 1 | 🔴 closed | `lorem / amet / sit` | t1 lorem ipsum dolor sit amet lo | lorem, amet, sit, dolor, ipsum | `[0]` | 0 |
-| 2 | 🔴 closed | `lorem / amet / sit` | t2 lorem ipsum dolor sit amet lo | lorem, amet, sit, dolor, ipsum | `[1]` | 1 |
-| 3 | 🔴 closed | `lorem / amet / sit` | t3 lorem ipsum dolor sit amet lo | lorem, amet, sit, dolor, ipsum | `[2]` | 2 |
-| 4 | 🔴 closed | `lorem / amet / sit` | t4 lorem ipsum dolor sit amet lo | lorem, amet, sit, dolor, ipsum | `[3]` | 3 |
-| 5 | 🔴 closed | `lorem / amet / sit` | t5 lorem ipsum dolor sit amet lo | lorem, amet, sit, dolor, ipsum | `[4]` | 4 |
+| 1 | 🔴 closed | `sit / ipsum / dolor` | t1 lorem ipsum dolor sit amet lo | sit, ipsum, dolor, lorem, amet | `[0]` | 0 |
+| 2 | 🔴 closed | `sit / ipsum / dolor` | t2 lorem ipsum dolor sit amet lo | sit, ipsum, dolor, lorem, amet | `[1]` | 1 |
+| 3 | 🔴 closed | `sit / ipsum / dolor` | t3 lorem ipsum dolor sit amet lo | sit, ipsum, dolor, lorem, amet | `[2]` | 2 |
+| 4 | 🔴 closed | `sit / ipsum / dolor` | t4 lorem ipsum dolor sit amet lo | sit, ipsum, dolor, lorem, amet | `[3]` | 3 |
+| 5 | 🔴 closed | `sit / ipsum / dolor` | t5 lorem ipsum dolor sit amet lo | sit, ipsum, dolor, lorem, amet | `[4]` | 4 |
 | 6 | 🟢 open | `t6 lorem ipsum dolor sit amet lorem ipsu` | - | - | `[5]` | -1 |
 
 **Page table**
@@ -2841,7 +2846,7 @@
 ### Turn 7 [fill]: "t7 lorem ipsum dolor sit amet lorem ipsu"
 
 - **Reply (assistant)**: lorem ipsum dolor sit amet lorem
-- **Events in prepare_context**: `closed topic 6, card: lorem / ipsu / amet`, `new topic 7`
+- **Events in prepare_context**: `closed topic 6, card: sit / ipsu / ipsum`, `new topic 7`
 - **Events in record_reply**: none
 - ✅ **Invariants**: all 11 hold
 
@@ -2849,12 +2854,12 @@
 
 | ID | Status | Label | Key facts | Entities | Pages | Covered |
 |:-:|:-:|:--|:--|:--|:-:|:-:|
-| 1 | 🔴 closed | `lorem / amet / sit` | t1 lorem ipsum dolor sit amet lo | lorem, amet, sit, dolor, ipsum | `[0]` | 0 |
-| 2 | 🔴 closed | `lorem / amet / sit` | t2 lorem ipsum dolor sit amet lo | lorem, amet, sit, dolor, ipsum | `[1]` | 1 |
-| 3 | 🔴 closed | `lorem / amet / sit` | t3 lorem ipsum dolor sit amet lo | lorem, amet, sit, dolor, ipsum | `[2]` | 2 |
-| 4 | 🔴 closed | `lorem / amet / sit` | t4 lorem ipsum dolor sit amet lo | lorem, amet, sit, dolor, ipsum | `[3]` | 3 |
-| 5 | 🔴 closed | `lorem / amet / sit` | t5 lorem ipsum dolor sit amet lo | lorem, amet, sit, dolor, ipsum | `[4]` | 4 |
-| 6 | 🔴 closed | `lorem / ipsu / amet` | t6 lorem ipsum dolor sit amet lorem ipsu | lorem, ipsu, amet, sit, dolor | `[5]` | 5 |
+| 1 | 🔴 closed | `sit / ipsum / dolor` | t1 lorem ipsum dolor sit amet lo | sit, ipsum, dolor, lorem, amet | `[0]` | 0 |
+| 2 | 🔴 closed | `sit / ipsum / dolor` | t2 lorem ipsum dolor sit amet lo | sit, ipsum, dolor, lorem, amet | `[1]` | 1 |
+| 3 | 🔴 closed | `sit / ipsum / dolor` | t3 lorem ipsum dolor sit amet lo | sit, ipsum, dolor, lorem, amet | `[2]` | 2 |
+| 4 | 🔴 closed | `sit / ipsum / dolor` | t4 lorem ipsum dolor sit amet lo | sit, ipsum, dolor, lorem, amet | `[3]` | 3 |
+| 5 | 🔴 closed | `sit / ipsum / dolor` | t5 lorem ipsum dolor sit amet lo | sit, ipsum, dolor, lorem, amet | `[4]` | 4 |
+| 6 | 🔴 closed | `sit / ipsu / ipsum` | t6 lorem ipsum dolor sit amet lorem ipsu | sit, ipsu, ipsum, dolor, lorem | `[5]` | 5 |
 | 7 | 🟢 open | `t7 lorem ipsum dolor sit amet lorem ipsu` | - | - | `[6]` | -1 |
 
 **Page table**
@@ -2912,7 +2917,7 @@
 
 - ✅ hysteresis: the next turn (~60%) triggers nothing because it is under high-water — got `[]`, expected `[]`
 
-**Result: ✅ PASS**  (9 checks, 0 failed, 7 turns, 0.00s)
+**Result: ✅ PASS**  (9 checks, 0 failed, 7 turns, 0.01s)
 
 ---
 
@@ -2959,7 +2964,7 @@
 ### Turn 2 [protect 3]: "t2 lorem ipsum dolor sit amet lo"
 
 - **Reply (assistant)**: lorem ipsum dolor sit amet lorem
-- **Events in prepare_context**: `closed topic 1, card: lorem / amet / sit`, `new topic 2`
+- **Events in prepare_context**: `closed topic 1, card: sit / ipsum / dolor`, `new topic 2`
 - **Events in record_reply**: none
 - ✅ **Invariants**: all 11 hold
 
@@ -2967,7 +2972,7 @@
 
 | ID | Status | Label | Key facts | Entities | Pages | Covered |
 |:-:|:-:|:--|:--|:--|:-:|:-:|
-| 1 | 🔴 closed | `lorem / amet / sit` | t1 lorem ipsum dolor sit amet lo | lorem, amet, sit, dolor, ipsum | `[0]` | 0 |
+| 1 | 🔴 closed | `sit / ipsum / dolor` | t1 lorem ipsum dolor sit amet lo | sit, ipsum, dolor, lorem, amet | `[0]` | 0 |
 | 2 | 🟢 open | `t2 lorem ipsum dolor sit amet lo` | - | - | `[1]` | -1 |
 
 **Page table**
@@ -3002,7 +3007,7 @@
 ### Turn 3 [protect 3]: "t3 lorem ipsum dolor sit amet lo"
 
 - **Reply (assistant)**: lorem ipsum dolor sit amet lorem
-- **Events in prepare_context**: `closed topic 2, card: lorem / amet / sit`, `new topic 3`
+- **Events in prepare_context**: `closed topic 2, card: sit / ipsum / dolor`, `new topic 3`
 - **Events in record_reply**: none
 - ✅ **Invariants**: all 11 hold
 
@@ -3010,8 +3015,8 @@
 
 | ID | Status | Label | Key facts | Entities | Pages | Covered |
 |:-:|:-:|:--|:--|:--|:-:|:-:|
-| 1 | 🔴 closed | `lorem / amet / sit` | t1 lorem ipsum dolor sit amet lo | lorem, amet, sit, dolor, ipsum | `[0]` | 0 |
-| 2 | 🔴 closed | `lorem / amet / sit` | t2 lorem ipsum dolor sit amet lo | lorem, amet, sit, dolor, ipsum | `[1]` | 1 |
+| 1 | 🔴 closed | `sit / ipsum / dolor` | t1 lorem ipsum dolor sit amet lo | sit, ipsum, dolor, lorem, amet | `[0]` | 0 |
+| 2 | 🔴 closed | `sit / ipsum / dolor` | t2 lorem ipsum dolor sit amet lo | sit, ipsum, dolor, lorem, amet | `[1]` | 1 |
 | 3 | 🟢 open | `t3 lorem ipsum dolor sit amet lo` | - | - | `[2]` | -1 |
 
 **Page table**
@@ -3052,7 +3057,7 @@
 ### Turn 4 [protect 3]: "t4 lorem ipsum dolor sit amet lo"
 
 - **Reply (assistant)**: lorem ipsum dolor sit amet lorem
-- **Events in prepare_context**: `closed topic 3, card: lorem / amet / sit`, `new topic 4`
+- **Events in prepare_context**: `closed topic 3, card: sit / ipsum / dolor`, `new topic 4`
 - **Events in record_reply**: none
 - ✅ **Invariants**: all 11 hold
 
@@ -3060,9 +3065,9 @@
 
 | ID | Status | Label | Key facts | Entities | Pages | Covered |
 |:-:|:-:|:--|:--|:--|:-:|:-:|
-| 1 | 🔴 closed | `lorem / amet / sit` | t1 lorem ipsum dolor sit amet lo | lorem, amet, sit, dolor, ipsum | `[0]` | 0 |
-| 2 | 🔴 closed | `lorem / amet / sit` | t2 lorem ipsum dolor sit amet lo | lorem, amet, sit, dolor, ipsum | `[1]` | 1 |
-| 3 | 🔴 closed | `lorem / amet / sit` | t3 lorem ipsum dolor sit amet lo | lorem, amet, sit, dolor, ipsum | `[2]` | 2 |
+| 1 | 🔴 closed | `sit / ipsum / dolor` | t1 lorem ipsum dolor sit amet lo | sit, ipsum, dolor, lorem, amet | `[0]` | 0 |
+| 2 | 🔴 closed | `sit / ipsum / dolor` | t2 lorem ipsum dolor sit amet lo | sit, ipsum, dolor, lorem, amet | `[1]` | 1 |
+| 3 | 🔴 closed | `sit / ipsum / dolor` | t3 lorem ipsum dolor sit amet lo | sit, ipsum, dolor, lorem, amet | `[2]` | 2 |
 | 4 | 🟢 open | `t4 lorem ipsum dolor sit amet lo` | - | - | `[3]` | -1 |
 
 **Page table**
@@ -3109,7 +3114,7 @@
 ### Turn 5 [protect 3]: "t5 lorem ipsum dolor sit amet lo"
 
 - **Reply (assistant)**: lorem ipsum dolor sit amet lorem
-- **Events in prepare_context**: `closed topic 4, card: lorem / amet / sit`, `new topic 5`
+- **Events in prepare_context**: `closed topic 4, card: sit / ipsum / dolor`, `new topic 5`
 - **Events in record_reply**: none
 - ✅ **Invariants**: all 11 hold
 
@@ -3117,10 +3122,10 @@
 
 | ID | Status | Label | Key facts | Entities | Pages | Covered |
 |:-:|:-:|:--|:--|:--|:-:|:-:|
-| 1 | 🔴 closed | `lorem / amet / sit` | t1 lorem ipsum dolor sit amet lo | lorem, amet, sit, dolor, ipsum | `[0]` | 0 |
-| 2 | 🔴 closed | `lorem / amet / sit` | t2 lorem ipsum dolor sit amet lo | lorem, amet, sit, dolor, ipsum | `[1]` | 1 |
-| 3 | 🔴 closed | `lorem / amet / sit` | t3 lorem ipsum dolor sit amet lo | lorem, amet, sit, dolor, ipsum | `[2]` | 2 |
-| 4 | 🔴 closed | `lorem / amet / sit` | t4 lorem ipsum dolor sit amet lo | lorem, amet, sit, dolor, ipsum | `[3]` | 3 |
+| 1 | 🔴 closed | `sit / ipsum / dolor` | t1 lorem ipsum dolor sit amet lo | sit, ipsum, dolor, lorem, amet | `[0]` | 0 |
+| 2 | 🔴 closed | `sit / ipsum / dolor` | t2 lorem ipsum dolor sit amet lo | sit, ipsum, dolor, lorem, amet | `[1]` | 1 |
+| 3 | 🔴 closed | `sit / ipsum / dolor` | t3 lorem ipsum dolor sit amet lo | sit, ipsum, dolor, lorem, amet | `[2]` | 2 |
+| 4 | 🔴 closed | `sit / ipsum / dolor` | t4 lorem ipsum dolor sit amet lo | sit, ipsum, dolor, lorem, amet | `[3]` | 3 |
 | 5 | 🟢 open | `t5 lorem ipsum dolor sit amet lo` | - | - | `[4]` | -1 |
 
 **Page table**
@@ -3173,7 +3178,7 @@
 ### Turn 6 [protect 3]: "t6 lorem ipsum dolor sit amet lorem ipsu"
 
 - **Reply (assistant)**: lorem ipsum dolor sit amet lorem
-- **Events in prepare_context**: `closed topic 5, card: lorem / amet / sit`, `new topic 6`, `move page 0: L1 -> L2`, `move page 1: L1 -> L2`, `move page 2: L1 -> L2`
+- **Events in prepare_context**: `closed topic 5, card: sit / ipsum / dolor`, `new topic 6`, `move page 0: L1 -> L2`, `move page 1: L1 -> L2`, `move page 2: L1 -> L2`
 - **Events in record_reply**: none
 - ✅ **Invariants**: all 11 hold
 
@@ -3181,11 +3186,11 @@
 
 | ID | Status | Label | Key facts | Entities | Pages | Covered |
 |:-:|:-:|:--|:--|:--|:-:|:-:|
-| 1 | 🔴 closed | `lorem / amet / sit` | t1 lorem ipsum dolor sit amet lo | lorem, amet, sit, dolor, ipsum | `[0]` | 0 |
-| 2 | 🔴 closed | `lorem / amet / sit` | t2 lorem ipsum dolor sit amet lo | lorem, amet, sit, dolor, ipsum | `[1]` | 1 |
-| 3 | 🔴 closed | `lorem / amet / sit` | t3 lorem ipsum dolor sit amet lo | lorem, amet, sit, dolor, ipsum | `[2]` | 2 |
-| 4 | 🔴 closed | `lorem / amet / sit` | t4 lorem ipsum dolor sit amet lo | lorem, amet, sit, dolor, ipsum | `[3]` | 3 |
-| 5 | 🔴 closed | `lorem / amet / sit` | t5 lorem ipsum dolor sit amet lo | lorem, amet, sit, dolor, ipsum | `[4]` | 4 |
+| 1 | 🔴 closed | `sit / ipsum / dolor` | t1 lorem ipsum dolor sit amet lo | sit, ipsum, dolor, lorem, amet | `[0]` | 0 |
+| 2 | 🔴 closed | `sit / ipsum / dolor` | t2 lorem ipsum dolor sit amet lo | sit, ipsum, dolor, lorem, amet | `[1]` | 1 |
+| 3 | 🔴 closed | `sit / ipsum / dolor` | t3 lorem ipsum dolor sit amet lo | sit, ipsum, dolor, lorem, amet | `[2]` | 2 |
+| 4 | 🔴 closed | `sit / ipsum / dolor` | t4 lorem ipsum dolor sit amet lo | sit, ipsum, dolor, lorem, amet | `[3]` | 3 |
+| 5 | 🔴 closed | `sit / ipsum / dolor` | t5 lorem ipsum dolor sit amet lo | sit, ipsum, dolor, lorem, amet | `[4]` | 4 |
 | 6 | 🟢 open | `t6 lorem ipsum dolor sit amet lorem ipsu` | - | - | `[5]` | -1 |
 
 **Page table**
@@ -3239,7 +3244,7 @@
 - ✅ the newest three pages (3, 4, and open 5) stayed — got `[3, 4, 5]`, expected `[3, 4, 5]`
 - ✅ L1 is still above low-water: protection wins over the target
 
-**Result: ✅ PASS**  (8 checks, 0 failed, 6 turns, 0.00s)
+**Result: ✅ PASS**  (8 checks, 0 failed, 6 turns, 0.01s)
 
 ---
 
@@ -3286,7 +3291,7 @@
 ### Turn 2 [protect 0]: "t2 lorem ipsum dolor sit amet lo"
 
 - **Reply (assistant)**: lorem ipsum dolor sit amet lorem
-- **Events in prepare_context**: `closed topic 1, card: lorem / amet / sit`, `new topic 2`
+- **Events in prepare_context**: `closed topic 1, card: sit / ipsum / dolor`, `new topic 2`
 - **Events in record_reply**: none
 - ✅ **Invariants**: all 11 hold
 
@@ -3294,7 +3299,7 @@
 
 | ID | Status | Label | Key facts | Entities | Pages | Covered |
 |:-:|:-:|:--|:--|:--|:-:|:-:|
-| 1 | 🔴 closed | `lorem / amet / sit` | t1 lorem ipsum dolor sit amet lo | lorem, amet, sit, dolor, ipsum | `[0]` | 0 |
+| 1 | 🔴 closed | `sit / ipsum / dolor` | t1 lorem ipsum dolor sit amet lo | sit, ipsum, dolor, lorem, amet | `[0]` | 0 |
 | 2 | 🟢 open | `t2 lorem ipsum dolor sit amet lo` | - | - | `[1]` | -1 |
 
 **Page table**
@@ -3329,7 +3334,7 @@
 ### Turn 3 [protect 0]: "t3 lorem ipsum dolor sit amet lo"
 
 - **Reply (assistant)**: lorem ipsum dolor sit amet lorem
-- **Events in prepare_context**: `closed topic 2, card: lorem / amet / sit`, `new topic 3`
+- **Events in prepare_context**: `closed topic 2, card: sit / ipsum / dolor`, `new topic 3`
 - **Events in record_reply**: none
 - ✅ **Invariants**: all 11 hold
 
@@ -3337,8 +3342,8 @@
 
 | ID | Status | Label | Key facts | Entities | Pages | Covered |
 |:-:|:-:|:--|:--|:--|:-:|:-:|
-| 1 | 🔴 closed | `lorem / amet / sit` | t1 lorem ipsum dolor sit amet lo | lorem, amet, sit, dolor, ipsum | `[0]` | 0 |
-| 2 | 🔴 closed | `lorem / amet / sit` | t2 lorem ipsum dolor sit amet lo | lorem, amet, sit, dolor, ipsum | `[1]` | 1 |
+| 1 | 🔴 closed | `sit / ipsum / dolor` | t1 lorem ipsum dolor sit amet lo | sit, ipsum, dolor, lorem, amet | `[0]` | 0 |
+| 2 | 🔴 closed | `sit / ipsum / dolor` | t2 lorem ipsum dolor sit amet lo | sit, ipsum, dolor, lorem, amet | `[1]` | 1 |
 | 3 | 🟢 open | `t3 lorem ipsum dolor sit amet lo` | - | - | `[2]` | -1 |
 
 **Page table**
@@ -3379,7 +3384,7 @@
 ### Turn 4 [protect 0]: "t4 lorem ipsum dolor sit amet lo"
 
 - **Reply (assistant)**: lorem ipsum dolor sit amet lorem
-- **Events in prepare_context**: `closed topic 3, card: lorem / amet / sit`, `new topic 4`
+- **Events in prepare_context**: `closed topic 3, card: sit / ipsum / dolor`, `new topic 4`
 - **Events in record_reply**: none
 - ✅ **Invariants**: all 11 hold
 
@@ -3387,9 +3392,9 @@
 
 | ID | Status | Label | Key facts | Entities | Pages | Covered |
 |:-:|:-:|:--|:--|:--|:-:|:-:|
-| 1 | 🔴 closed | `lorem / amet / sit` | t1 lorem ipsum dolor sit amet lo | lorem, amet, sit, dolor, ipsum | `[0]` | 0 |
-| 2 | 🔴 closed | `lorem / amet / sit` | t2 lorem ipsum dolor sit amet lo | lorem, amet, sit, dolor, ipsum | `[1]` | 1 |
-| 3 | 🔴 closed | `lorem / amet / sit` | t3 lorem ipsum dolor sit amet lo | lorem, amet, sit, dolor, ipsum | `[2]` | 2 |
+| 1 | 🔴 closed | `sit / ipsum / dolor` | t1 lorem ipsum dolor sit amet lo | sit, ipsum, dolor, lorem, amet | `[0]` | 0 |
+| 2 | 🔴 closed | `sit / ipsum / dolor` | t2 lorem ipsum dolor sit amet lo | sit, ipsum, dolor, lorem, amet | `[1]` | 1 |
+| 3 | 🔴 closed | `sit / ipsum / dolor` | t3 lorem ipsum dolor sit amet lo | sit, ipsum, dolor, lorem, amet | `[2]` | 2 |
 | 4 | 🟢 open | `t4 lorem ipsum dolor sit amet lo` | - | - | `[3]` | -1 |
 
 **Page table**
@@ -3436,7 +3441,7 @@
 ### Turn 5 [protect 0]: "t5 lorem ipsum dolor sit amet lo"
 
 - **Reply (assistant)**: lorem ipsum dolor sit amet lorem
-- **Events in prepare_context**: `closed topic 4, card: lorem / amet / sit`, `new topic 5`
+- **Events in prepare_context**: `closed topic 4, card: sit / ipsum / dolor`, `new topic 5`
 - **Events in record_reply**: none
 - ✅ **Invariants**: all 11 hold
 
@@ -3444,10 +3449,10 @@
 
 | ID | Status | Label | Key facts | Entities | Pages | Covered |
 |:-:|:-:|:--|:--|:--|:-:|:-:|
-| 1 | 🔴 closed | `lorem / amet / sit` | t1 lorem ipsum dolor sit amet lo | lorem, amet, sit, dolor, ipsum | `[0]` | 0 |
-| 2 | 🔴 closed | `lorem / amet / sit` | t2 lorem ipsum dolor sit amet lo | lorem, amet, sit, dolor, ipsum | `[1]` | 1 |
-| 3 | 🔴 closed | `lorem / amet / sit` | t3 lorem ipsum dolor sit amet lo | lorem, amet, sit, dolor, ipsum | `[2]` | 2 |
-| 4 | 🔴 closed | `lorem / amet / sit` | t4 lorem ipsum dolor sit amet lo | lorem, amet, sit, dolor, ipsum | `[3]` | 3 |
+| 1 | 🔴 closed | `sit / ipsum / dolor` | t1 lorem ipsum dolor sit amet lo | sit, ipsum, dolor, lorem, amet | `[0]` | 0 |
+| 2 | 🔴 closed | `sit / ipsum / dolor` | t2 lorem ipsum dolor sit amet lo | sit, ipsum, dolor, lorem, amet | `[1]` | 1 |
+| 3 | 🔴 closed | `sit / ipsum / dolor` | t3 lorem ipsum dolor sit amet lo | sit, ipsum, dolor, lorem, amet | `[2]` | 2 |
+| 4 | 🔴 closed | `sit / ipsum / dolor` | t4 lorem ipsum dolor sit amet lo | sit, ipsum, dolor, lorem, amet | `[3]` | 3 |
 | 5 | 🟢 open | `t5 lorem ipsum dolor sit amet lo` | - | - | `[4]` | -1 |
 
 **Page table**
@@ -3500,7 +3505,7 @@
 ### Turn 6 [protect 0]: "t6 lorem ipsum dolor sit amet lorem ipsu"
 
 - **Reply (assistant)**: lorem ipsum dolor sit amet lorem
-- **Events in prepare_context**: `closed topic 5, card: lorem / amet / sit`, `new topic 6`, `move page 0: L1 -> L2`, `move page 1: L1 -> L2`, `move page 2: L1 -> L2`, `move page 3: L1 -> L2`, `move page 4: L1 -> L2`
+- **Events in prepare_context**: `closed topic 5, card: sit / ipsum / dolor`, `new topic 6`, `move page 0: L1 -> L2`, `move page 1: L1 -> L2`, `move page 2: L1 -> L2`, `move page 3: L1 -> L2`, `move page 4: L1 -> L2`
 - **Events in record_reply**: none
 - ✅ **Invariants**: all 11 hold
 
@@ -3508,11 +3513,11 @@
 
 | ID | Status | Label | Key facts | Entities | Pages | Covered |
 |:-:|:-:|:--|:--|:--|:-:|:-:|
-| 1 | 🔴 closed | `lorem / amet / sit` | t1 lorem ipsum dolor sit amet lo | lorem, amet, sit, dolor, ipsum | `[0]` | 0 |
-| 2 | 🔴 closed | `lorem / amet / sit` | t2 lorem ipsum dolor sit amet lo | lorem, amet, sit, dolor, ipsum | `[1]` | 1 |
-| 3 | 🔴 closed | `lorem / amet / sit` | t3 lorem ipsum dolor sit amet lo | lorem, amet, sit, dolor, ipsum | `[2]` | 2 |
-| 4 | 🔴 closed | `lorem / amet / sit` | t4 lorem ipsum dolor sit amet lo | lorem, amet, sit, dolor, ipsum | `[3]` | 3 |
-| 5 | 🔴 closed | `lorem / amet / sit` | t5 lorem ipsum dolor sit amet lo | lorem, amet, sit, dolor, ipsum | `[4]` | 4 |
+| 1 | 🔴 closed | `sit / ipsum / dolor` | t1 lorem ipsum dolor sit amet lo | sit, ipsum, dolor, lorem, amet | `[0]` | 0 |
+| 2 | 🔴 closed | `sit / ipsum / dolor` | t2 lorem ipsum dolor sit amet lo | sit, ipsum, dolor, lorem, amet | `[1]` | 1 |
+| 3 | 🔴 closed | `sit / ipsum / dolor` | t3 lorem ipsum dolor sit amet lo | sit, ipsum, dolor, lorem, amet | `[2]` | 2 |
+| 4 | 🔴 closed | `sit / ipsum / dolor` | t4 lorem ipsum dolor sit amet lo | sit, ipsum, dolor, lorem, amet | `[3]` | 3 |
+| 5 | 🔴 closed | `sit / ipsum / dolor` | t5 lorem ipsum dolor sit amet lo | sit, ipsum, dolor, lorem, amet | `[4]` | 4 |
 | 6 | 🟢 open | `t6 lorem ipsum dolor sit amet lorem ipsu` | - | - | `[5]` | -1 |
 
 **Page table**
@@ -3561,7 +3566,7 @@
 - ✅ all five closed pages are demotable — got `[0, 1, 2, 3, 4]`, expected `[0, 1, 2, 3, 4]`
 - ✅ only the open page remains in L1 — got `[5]`, expected `[5]`
 
-**Result: ✅ PASS**  (7 checks, 0 failed, 6 turns, 0.00s)
+**Result: ✅ PASS**  (7 checks, 0 failed, 6 turns, 0.01s)
 
 ---
 
@@ -3607,7 +3612,7 @@
 ### Turn 2: "t2 lorem ipsum dolor sit amet lorem ipsu"
 
 - **Reply (assistant)**: lorem ipsum dolor sit amet lorem ipsum d
-- **Events in prepare_context**: `closed topic 1, card: lorem / ipsu / amet`, `new topic 2`
+- **Events in prepare_context**: `closed topic 1, card: sit / ipsu / ipsum`, `new topic 2`
 - **Events in record_reply**: none
 - ✅ **Invariants**: all 11 hold
 
@@ -3615,7 +3620,7 @@
 
 | ID | Status | Label | Key facts | Entities | Pages | Covered |
 |:-:|:-:|:--|:--|:--|:-:|:-:|
-| 1 | 🔴 closed | `lorem / ipsu / amet` | t1 lorem ipsum dolor sit amet lorem ipsu | lorem, ipsu, amet, sit, dolor | `[0]` | 0 |
+| 1 | 🔴 closed | `sit / ipsu / ipsum` | t1 lorem ipsum dolor sit amet lorem ipsu | sit, ipsu, ipsum, dolor, lorem | `[0]` | 0 |
 | 2 | 🟢 open | `t2 lorem ipsum dolor sit amet lorem ipsu` | - | - | `[1]` | -1 |
 
 **Page table**
@@ -3649,7 +3654,7 @@
 ### Turn 3: "t3 lorem ipsum dolor sit amet lorem ipsu"
 
 - **Reply (assistant)**: lorem ipsum dolor sit amet lorem ipsum d
-- **Events in prepare_context**: `closed topic 2, card: lorem / ipsu / amet`, `new topic 3`
+- **Events in prepare_context**: `closed topic 2, card: sit / ipsu / ipsum`, `new topic 3`
 - **Events in record_reply**: none
 - ✅ **Invariants**: all 11 hold
 
@@ -3657,8 +3662,8 @@
 
 | ID | Status | Label | Key facts | Entities | Pages | Covered |
 |:-:|:-:|:--|:--|:--|:-:|:-:|
-| 1 | 🔴 closed | `lorem / ipsu / amet` | t1 lorem ipsum dolor sit amet lorem ipsu | lorem, ipsu, amet, sit, dolor | `[0]` | 0 |
-| 2 | 🔴 closed | `lorem / ipsu / amet` | t2 lorem ipsum dolor sit amet lorem ipsu | lorem, ipsu, amet, sit, dolor | `[1]` | 1 |
+| 1 | 🔴 closed | `sit / ipsu / ipsum` | t1 lorem ipsum dolor sit amet lorem ipsu | sit, ipsu, ipsum, dolor, lorem | `[0]` | 0 |
+| 2 | 🔴 closed | `sit / ipsu / ipsum` | t2 lorem ipsum dolor sit amet lorem ipsu | sit, ipsu, ipsum, dolor, lorem | `[1]` | 1 |
 | 3 | 🟢 open | `t3 lorem ipsum dolor sit amet lorem ipsu` | - | - | `[2]` | -1 |
 
 **Page table**
@@ -3698,7 +3703,7 @@
 ### Turn 4: "t4 lorem ipsum dolor sit amet lorem ipsu"
 
 - **Reply (assistant)**: lorem ipsum dolor sit amet lorem ipsum d
-- **Events in prepare_context**: `closed topic 3, card: lorem / ipsu / amet`, `new topic 4`
+- **Events in prepare_context**: `closed topic 3, card: sit / ipsu / ipsum`, `new topic 4`
 - **Events in record_reply**: none
 - ✅ **Invariants**: all 11 hold
 
@@ -3706,9 +3711,9 @@
 
 | ID | Status | Label | Key facts | Entities | Pages | Covered |
 |:-:|:-:|:--|:--|:--|:-:|:-:|
-| 1 | 🔴 closed | `lorem / ipsu / amet` | t1 lorem ipsum dolor sit amet lorem ipsu | lorem, ipsu, amet, sit, dolor | `[0]` | 0 |
-| 2 | 🔴 closed | `lorem / ipsu / amet` | t2 lorem ipsum dolor sit amet lorem ipsu | lorem, ipsu, amet, sit, dolor | `[1]` | 1 |
-| 3 | 🔴 closed | `lorem / ipsu / amet` | t3 lorem ipsum dolor sit amet lorem ipsu | lorem, ipsu, amet, sit, dolor | `[2]` | 2 |
+| 1 | 🔴 closed | `sit / ipsu / ipsum` | t1 lorem ipsum dolor sit amet lorem ipsu | sit, ipsu, ipsum, dolor, lorem | `[0]` | 0 |
+| 2 | 🔴 closed | `sit / ipsu / ipsum` | t2 lorem ipsum dolor sit amet lorem ipsu | sit, ipsu, ipsum, dolor, lorem | `[1]` | 1 |
+| 3 | 🔴 closed | `sit / ipsu / ipsum` | t3 lorem ipsum dolor sit amet lorem ipsu | sit, ipsu, ipsum, dolor, lorem | `[2]` | 2 |
 | 4 | 🟢 open | `t4 lorem ipsum dolor sit amet lorem ipsu` | - | - | `[3]` | -1 |
 
 **Page table**
@@ -3754,7 +3759,7 @@
 ### Turn 5: "t5 lorem ipsum dolor sit amet lorem ipsu"
 
 - **Reply (assistant)**: lorem ipsum dolor si
-- **Events in prepare_context**: `closed topic 4, card: lorem / ipsu / amet`, `new topic 5`, `move page 1: L1 -> L2`, `move page 3: L1 -> L2`
+- **Events in prepare_context**: `closed topic 4, card: sit / ipsu / ipsum`, `new topic 5`, `move page 1: L1 -> L2`, `move page 3: L1 -> L2`
 - **Events in record_reply**: none
 - ✅ **Invariants**: all 11 hold
 
@@ -3762,10 +3767,10 @@
 
 | ID | Status | Label | Key facts | Entities | Pages | Covered |
 |:-:|:-:|:--|:--|:--|:-:|:-:|
-| 1 | 🔴 closed | `lorem / ipsu / amet` | t1 lorem ipsum dolor sit amet lorem ipsu | lorem, ipsu, amet, sit, dolor | `[0]` | 0 |
-| 2 | 🔴 closed | `lorem / ipsu / amet` | t2 lorem ipsum dolor sit amet lorem ipsu | lorem, ipsu, amet, sit, dolor | `[1]` | 1 |
-| 3 | 🔴 closed | `lorem / ipsu / amet` | t3 lorem ipsum dolor sit amet lorem ipsu | lorem, ipsu, amet, sit, dolor | `[2]` | 2 |
-| 4 | 🔴 closed | `lorem / ipsu / amet` | t4 lorem ipsum dolor sit amet lorem ipsu | lorem, ipsu, amet, sit, dolor | `[3]` | 3 |
+| 1 | 🔴 closed | `sit / ipsu / ipsum` | t1 lorem ipsum dolor sit amet lorem ipsu | sit, ipsu, ipsum, dolor, lorem | `[0]` | 0 |
+| 2 | 🔴 closed | `sit / ipsu / ipsum` | t2 lorem ipsum dolor sit amet lorem ipsu | sit, ipsu, ipsum, dolor, lorem | `[1]` | 1 |
+| 3 | 🔴 closed | `sit / ipsu / ipsum` | t3 lorem ipsum dolor sit amet lorem ipsu | sit, ipsu, ipsum, dolor, lorem | `[2]` | 2 |
+| 4 | 🔴 closed | `sit / ipsu / ipsum` | t4 lorem ipsum dolor sit amet lorem ipsu | sit, ipsu, ipsum, dolor, lorem | `[3]` | 3 |
 | 5 | 🟢 open | `t5 lorem ipsum dolor sit amet lorem ipsu` | - | - | `[4]` | -1 |
 
 **Page table**
@@ -3861,7 +3866,7 @@
 ### Turn 2: "b lorem ipsum dolor sit amet lorem ipsum"
 
 - **Reply (assistant)**: lorem ipsum dolor sit amet lorem ipsum d
-- **Events in prepare_context**: `closed topic 1, card: lorem / amet / sit`, `new topic 2`
+- **Events in prepare_context**: `closed topic 1, card: sit / ipsum / dolor`, `new topic 2`
 - **Events in record_reply**: none
 - ✅ **Invariants**: all 11 hold
 
@@ -3869,7 +3874,7 @@
 
 | ID | Status | Label | Key facts | Entities | Pages | Covered |
 |:-:|:-:|:--|:--|:--|:-:|:-:|
-| 1 | 🔴 closed | `lorem / amet / sit` | a lorem ipsum dolor sit amet lorem ipsum | lorem, amet, sit, dolor, ipsum | `[0]` | 0 |
+| 1 | 🔴 closed | `sit / ipsum / dolor` | a lorem ipsum dolor sit amet lorem ipsum | sit, ipsum, dolor, lorem, amet | `[0]` | 0 |
 | 2 | 🟢 open | `b lorem ipsum dolor sit amet lorem ipsum` | - | - | `[1]` | -1 |
 
 **Page table**
@@ -3903,7 +3908,7 @@
 ### Turn 3: "c lorem ipsum dolor "
 
 - **Reply (assistant)**: lorem ipsum dolor si
-- **Events in prepare_context**: `closed topic 2, card: lorem / amet / sit`, `new topic 3`
+- **Events in prepare_context**: `closed topic 2, card: sit / ipsum / dolor`, `new topic 3`
 - **Events in record_reply**: none
 - ✅ **Invariants**: all 11 hold
 
@@ -3911,8 +3916,8 @@
 
 | ID | Status | Label | Key facts | Entities | Pages | Covered |
 |:-:|:-:|:--|:--|:--|:-:|:-:|
-| 1 | 🔴 closed | `lorem / amet / sit` | a lorem ipsum dolor sit amet lorem ipsum | lorem, amet, sit, dolor, ipsum | `[0]` | 0 |
-| 2 | 🔴 closed | `lorem / amet / sit` | b lorem ipsum dolor sit amet lorem ipsum | lorem, amet, sit, dolor, ipsum | `[1]` | 1 |
+| 1 | 🔴 closed | `sit / ipsum / dolor` | a lorem ipsum dolor sit amet lorem ipsum | sit, ipsum, dolor, lorem, amet | `[0]` | 0 |
+| 2 | 🔴 closed | `sit / ipsum / dolor` | b lorem ipsum dolor sit amet lorem ipsum | sit, ipsum, dolor, lorem, amet | `[1]` | 1 |
 | 3 | 🟢 open | `c lorem ipsum dolor ` | - | - | `[2]` | -1 |
 
 **Page table**
@@ -4085,7 +4090,7 @@
 ### Turn 2: "other lorem ipsum dolor sit amet lorem ipsum dol"
 
 - **Reply (assistant)**: lorem ipsum dolor sit amet lorem ipsum d
-- **Events in prepare_context**: `closed topic 1, card: lorem / amet / sit`, `new topic 2`, `move page 0: L1 -> L2`
+- **Events in prepare_context**: `closed topic 1, card: sit / ips / old`, `new topic 2`, `move page 0: L1 -> L2`
 - **Events in record_reply**: none
 - ✅ **Invariants**: all 11 hold
 
@@ -4093,7 +4098,7 @@
 
 | ID | Status | Label | Key facts | Entities | Pages | Covered |
 |:-:|:-:|:--|:--|:--|:-:|:-:|
-| 1 | 🔴 closed | `lorem / amet / sit` | old lorem ipsum dolor sit amet lorem ipsum dolor sit amet... | lorem, amet, sit, ips, dolor | `[0]` | 0 |
+| 1 | 🔴 closed | `sit / ips / old` | old lorem ipsum dolor sit amet lorem ipsum dolor sit amet... | sit, ips, old, ipsum, dolor | `[0]` | 0 |
 | 2 | 🟢 open | `other lorem ipsum dolor sit amet lore...` | - | - | `[1]` | -1 |
 
 **Page table**
@@ -4127,7 +4132,7 @@
 ### Turn 3: "back lorem ipsum dolor sit amet lorem ipsum dolor si"
 
 - **Reply (assistant)**: lorem ipsum dolor sit amet lorem
-- **Events in prepare_context**: `closed topic 2, card: other / lorem / amet`, `return to topic 1 (lorem / amet / sit)`, `move page 1: L1 -> L2`, `move page 0: L2 -> L1`
+- **Events in prepare_context**: `closed topic 2, card: sit / other / ipsum`, `return to topic 1 (sit / ips / old)`, `move page 1: L1 -> L2`, `move page 0: L2 -> L1`
 - **Events in record_reply**: none
 - ✅ **Invariants**: all 11 hold
 
@@ -4135,8 +4140,8 @@
 
 | ID | Status | Label | Key facts | Entities | Pages | Covered |
 |:-:|:-:|:--|:--|:--|:-:|:-:|
-| 1 | 🟢 open | `lorem / amet / sit` | old lorem ipsum dolor sit amet lorem ipsum dolor sit amet... | lorem, amet, sit, ips, dolor | `[0, 2]` | 0 |
-| 2 | 🔴 closed | `other / lorem / amet` | other lorem ipsum dolor sit amet lorem ipsum dol | other, lorem, amet, sit, dolor | `[1]` | 1 |
+| 1 | 🟢 open | `sit / ips / old` | old lorem ipsum dolor sit amet lorem ipsum dolor sit amet... | sit, ips, old, ipsum, dolor | `[0, 2]` | 0 |
+| 2 | 🔴 closed | `sit / other / ipsum` | other lorem ipsum dolor sit amet lorem ipsum dol | sit, other, ipsum, dolor, lorem | `[1]` | 1 |
 
 **Page table**
 
@@ -4220,7 +4225,7 @@
 ### Turn 2: "other lorem ipsum dolor sit amet lorem ipsum dol"
 
 - **Reply (assistant)**: lorem ipsum dolor sit amet lorem ipsum d
-- **Events in prepare_context**: `closed topic 1, card: lorem / amet / sit`, `new topic 2`, `move page 0: L1 -> L2`
+- **Events in prepare_context**: `closed topic 1, card: sit / ips / old`, `new topic 2`, `move page 0: L1 -> L2`
 - **Events in record_reply**: none
 - ✅ **Invariants**: all 11 hold
 
@@ -4228,7 +4233,7 @@
 
 | ID | Status | Label | Key facts | Entities | Pages | Covered |
 |:-:|:-:|:--|:--|:--|:-:|:-:|
-| 1 | 🔴 closed | `lorem / amet / sit` | old lorem ipsum dolor sit amet lorem ipsum dolor sit amet... | lorem, amet, sit, ips, dolor | `[0]` | 0 |
+| 1 | 🔴 closed | `sit / ips / old` | old lorem ipsum dolor sit amet lorem ipsum dolor sit amet... | sit, ips, old, ipsum, dolor | `[0]` | 0 |
 | 2 | 🟢 open | `other lorem ipsum dolor sit amet lore...` | - | - | `[1]` | -1 |
 
 **Page table**
@@ -4261,7 +4266,7 @@
 ### Turn 3: "back lorem ipsum dolor sit amet lorem ipsum dolor si"
 
 - **Reply (assistant)**: this reply is 15 tokens lorem ipsum dolor sit amet lorem ips
-- **Events in prepare_context**: `closed topic 2, card: other / lorem / amet`, `return to topic 1 (lorem / amet / sit)`, `move page 1: L1 -> L2`, `move page 0: L2 -> L1`
+- **Events in prepare_context**: `closed topic 2, card: sit / other / ipsum`, `return to topic 1 (sit / ips / old)`, `move page 1: L1 -> L2`, `move page 0: L2 -> L1`
 - **Events in record_reply**: `forced demotion of page 0: no room for reply`, `move page 0: L1 -> L2`
 - ✅ **Invariants**: all 11 hold
 
@@ -4269,8 +4274,8 @@
 
 | ID | Status | Label | Key facts | Entities | Pages | Covered |
 |:-:|:-:|:--|:--|:--|:-:|:-:|
-| 1 | 🟢 open | `lorem / amet / sit` | old lorem ipsum dolor sit amet lorem ipsum dolor sit amet... | lorem, amet, sit, ips, dolor | `[0, 2]` | 0 |
-| 2 | 🔴 closed | `other / lorem / amet` | other lorem ipsum dolor sit amet lorem ipsum dol | other, lorem, amet, sit, dolor | `[1]` | 1 |
+| 1 | 🟢 open | `sit / ips / old` | old lorem ipsum dolor sit amet lorem ipsum dolor sit amet... | sit, ips, old, ipsum, dolor | `[0, 2]` | 0 |
+| 2 | 🔴 closed | `sit / other / ipsum` | other lorem ipsum dolor sit amet lorem ipsum dol | sit, other, ipsum, dolor, lorem | `[1]` | 1 |
 
 **Page table**
 
@@ -4355,7 +4360,7 @@
 ### Turn 2 [reply_reserve=40]: "b lorem ipsum dolor sit amet lorem ipsum dolor sit amet lorem ipsum dolor sit amet lorem ipsum dolor sit am..."
 
 - **Reply (assistant)**: lorem ipsum dolor sit amet lorem ipsum dolor sit amet lorem ipsum dolor sit amet lorem ipsum dolor sit amet...
-- **Events in prepare_context**: `closed topic 1, card: lorem / amet / sit`, `new topic 2`, `move page 0: L1 -> L2`
+- **Events in prepare_context**: `closed topic 1, card: sit / ipsum / dolor`, `new topic 2`, `move page 0: L1 -> L2`
 - **Events in record_reply**: none
 - ✅ **Invariants**: all 11 hold
 
@@ -4363,7 +4368,7 @@
 
 | ID | Status | Label | Key facts | Entities | Pages | Covered |
 |:-:|:-:|:--|:--|:--|:-:|:-:|
-| 1 | 🔴 closed | `lorem / amet / sit` | a lorem ipsum dolor sit amet lorem ipsum dolor sit amet l... | lorem, amet, sit, dolor, ipsum | `[0]` | 0 |
+| 1 | 🔴 closed | `sit / ipsum / dolor` | a lorem ipsum dolor sit amet lorem ipsum dolor sit amet l... | sit, ipsum, dolor, lorem, amet | `[0]` | 0 |
 | 2 | 🟢 open | `b lorem ipsum dolor sit amet lorem ip...` | - | - | `[1]` | -1 |
 
 **Page table**
@@ -4434,7 +4439,7 @@
 ### Turn 2 [reply_reserve=0]: "b lorem ipsum dolor sit amet lorem ipsum dolor sit amet lorem ipsum dolor sit amet lorem ipsum dolor sit am..."
 
 - **Reply (assistant)**: lorem ipsum dolor si
-- **Events in prepare_context**: `closed topic 1, card: lorem / amet / sit`, `new topic 2`
+- **Events in prepare_context**: `closed topic 1, card: sit / ipsum / dolor`, `new topic 2`
 - **Events in record_reply**: none
 - ✅ **Invariants**: all 11 hold
 
@@ -4442,7 +4447,7 @@
 
 | ID | Status | Label | Key facts | Entities | Pages | Covered |
 |:-:|:-:|:--|:--|:--|:-:|:-:|
-| 1 | 🔴 closed | `lorem / amet / sit` | a lorem ipsum dolor sit amet lorem ipsum dolor sit amet l... | lorem, amet, sit, dolor, ipsum | `[0]` | 0 |
+| 1 | 🔴 closed | `sit / ipsum / dolor` | a lorem ipsum dolor sit amet lorem ipsum dolor sit amet l... | sit, ipsum, dolor, lorem, amet | `[0]` | 0 |
 | 2 | 🟢 open | `b lorem ipsum dolor sit amet lorem ip...` | - | - | `[1]` | -1 |
 
 **Page table**
@@ -4755,7 +4760,7 @@
 ### Turn 2: "carbonara lorem ipsum dolor sit amet lorem ipsum"
 
 - **Reply (assistant)**: lorem ipsum dolor sit am
-- **Events in prepare_context**: `closed topic 1, card: lorem / amet / lor`, `new topic 2`
+- **Events in prepare_context**: `closed topic 1, card: dolor / sit / lor`, `new topic 2`
 - **Events in record_reply**: none
 - ✅ **Invariants**: all 11 hold
 
@@ -4763,7 +4768,7 @@
 
 | ID | Status | Label | Key facts | Entities | Pages | Covered |
 |:-:|:-:|:--|:--|:--|:-:|:-:|
-| 1 | 🔴 closed | `lorem / amet / lor` | docker containers lorem ipsum dolor sit amet lor | lorem, amet, lor, sit, dolor | `[0]` | 0 |
+| 1 | 🔴 closed | `dolor / sit / lor` | docker containers lorem ipsum dolor sit amet lor | dolor, sit, lor, ipsum, docker | `[0]` | 0 |
 | 2 | 🟢 open | `carbonara lorem ipsum dolor sit amet ...` | - | - | `[1]` | -1 |
 
 **Page table**
@@ -4797,7 +4802,7 @@
 ### Turn 3: "docker compose networks lorem ipsum dolor sit am"
 
 - **Reply (assistant)**: lorem ipsum dolor sit am
-- **Events in prepare_context**: `closed topic 2, card: lorem / amet / sit`, `return to topic 1 (lorem / amet / lor)`
+- **Events in prepare_context**: `closed topic 2, card: sit / carbonara / ipsum`, `return to topic 1 (dolor / sit / lor)`
 - **Events in record_reply**: none
 - ✅ **Invariants**: all 11 hold
 
@@ -4805,8 +4810,8 @@
 
 | ID | Status | Label | Key facts | Entities | Pages | Covered |
 |:-:|:-:|:--|:--|:--|:-:|:-:|
-| 1 | 🟢 open | `lorem / amet / lor` | docker containers lorem ipsum dolor sit amet lor | lorem, amet, lor, sit, dolor | `[0, 2]` | 0 |
-| 2 | 🔴 closed | `lorem / amet / sit` | carbonara lorem ipsum dolor sit amet lorem ipsum | lorem, amet, sit, dolor, ipsum | `[1]` | 1 |
+| 1 | 🟢 open | `dolor / sit / lor` | docker containers lorem ipsum dolor sit amet lor | dolor, sit, lor, ipsum, docker | `[0, 2]` | 0 |
+| 2 | 🔴 closed | `sit / carbonara / ipsum` | carbonara lorem ipsum dolor sit amet lorem ipsum | sit, carbonara, ipsum, dolor, lorem | `[1]` | 1 |
 
 **Page table**
 
@@ -4845,7 +4850,7 @@
 ### Turn 4: "stocks lorem ipsum dolor sit amet lorem ipsum do"
 
 - **Reply (assistant)**: lorem ipsum dolor sit am
-- **Events in prepare_context**: `closed topic 1, card: lorem / amet / lor`, `new topic 3`
+- **Events in prepare_context**: `closed topic 1, card: dolor / sit / lor`, `new topic 3`
 - **Events in record_reply**: none
 - ✅ **Invariants**: all 11 hold
 
@@ -4853,8 +4858,8 @@
 
 | ID | Status | Label | Key facts | Entities | Pages | Covered |
 |:-:|:-:|:--|:--|:--|:-:|:-:|
-| 1 | 🔴 closed | `lorem / amet / lor` | docker containers lorem ipsum dolor sit amet lor; docker ... | lorem, amet, lor, sit, dolor | `[0, 2]` | 2 |
-| 2 | 🔴 closed | `lorem / amet / sit` | carbonara lorem ipsum dolor sit amet lorem ipsum | lorem, amet, sit, dolor, ipsum | `[1]` | 1 |
+| 1 | 🔴 closed | `dolor / sit / lor` | docker containers lorem ipsum dolor sit amet lor; docker ... | dolor, sit, lor, ipsum, docker | `[0, 2]` | 2 |
+| 2 | 🔴 closed | `sit / carbonara / ipsum` | carbonara lorem ipsum dolor sit amet lorem ipsum | sit, carbonara, ipsum, dolor, lorem | `[1]` | 1 |
 | 3 | 🟢 open | `stocks lorem ipsum dolor sit amet lor...` | - | - | `[3]` | -1 |
 
 **Page table**
@@ -4990,7 +4995,7 @@
 ### Turn 3: "z lorem ipsum dolor sit amet lorem ipsum dolor sit amet lorem ipsum dolor sit amet lorem ipsum dolor sit am..."
 
 - **Reply (assistant)**: lorem ipsum dolor sit amet lorem ipsum d
-- **Events in prepare_context**: `closed topic 1, card: lorem / amet / sit`, `new topic 2`, `move page 0: L1 -> L2`, `move page 1: L1 -> L2`
+- **Events in prepare_context**: `closed topic 1, card: sit / ipsum / dolor`, `new topic 2`, `move page 0: L1 -> L2`, `move page 1: L1 -> L2`
 - **Events in record_reply**: none
 - ✅ **Invariants**: all 11 hold
 
@@ -4998,7 +5003,7 @@
 
 | ID | Status | Label | Key facts | Entities | Pages | Covered |
 |:-:|:-:|:--|:--|:--|:-:|:-:|
-| 1 | 🔴 closed | `lorem / amet / sit` | x lorem ipsum dolor sit amet lorem ipsum; y lorem ipsum d... | lorem, amet, sit, dolor, ipsum | `[0, 1]` | 1 |
+| 1 | 🔴 closed | `sit / ipsum / dolor` | x lorem ipsum dolor sit amet lorem ipsum; y lorem ipsum d... | sit, ipsum, dolor, lorem, amet | `[0, 1]` | 1 |
 | 2 | 🟢 open | `z lorem ipsum dolor sit amet lorem ip...` | - | - | `[2]` | -1 |
 
 **Page table**
@@ -5080,12 +5085,12 @@
 
 ---
 
-## D4 — JevSegmenter decision rules
+## D4 — LayaSegmenter decision rules
 
-> JevSegmenter turns Jev's answer into a decision: confidence floor, strict return threshold, question shape.
+> LayaSegmenter turns Laya's answer into a decision: confidence floor, strict return threshold, question shape.
 
-- ✅ asks one Choice question with id 'segment'
-- ✅ options: continue, new and one return:<id> per closed topic — got `['continue', 'new', 'return:1', 'return:2']`, expected `['continue', 'new', 'return:1', 'return:2']`
+- ✅ asks a choice question
+- ✅ criteria: continue, new and one return:<id> per closed topic — got `['continue', 'new', 'return:1', 'return:2']`, expected `['continue', 'new', 'return:1', 'return:2']`
 - ✅ state contains the recent messages and the newest one
 - ✅ choice 'continue' -> continue — got `'continue'`, expected `'continue'`
 - ✅ choice 'new' -> new — got `'new'`, expected `'new'`
@@ -5093,24 +5098,23 @@
 - ✅ return with probability 0.7 < 0.8: treated as new (strict merge) — got `'new'`, expected `'new'`
 - ✅ confidence 0.5 < 0.6: falls back to continue — got `'continue'`, expected `'continue'`
 - ✅ return without a probability: treated as new, no crash — got `'new'`, expected `'new'`
-- ✅ no open topic: new — got `'new'`, expected `'new'`
-- ✅ and Jev is not called at all in that case — got `[]`, expected `[]`
+- ✅ no open topic: new (no Laya call needed) — got `'new'`, expected `'new'`
 
-**Result: ✅ PASS**  (11 checks, 0 failed, 0 turns, 0.00s)
+**Result: ✅ PASS**  (10 checks, 0 failed, 0 turns, 0.14s)
 
 ---
 
-## D5 — JevRouter builds one question per topic
+## D5 — LayaRouter builds one question per topic
 
-> JevRouter asks one Noul question per closed topic and returns their probabilities.
+> LayaRouter asks one noul question per closed topic and returns their probabilities.
 
 - ✅ returns {topic_id: probability} — got `{1: 0.9, 4: 0.1}`, expected `{1: 0.9, 4: 0.1}`
-- ✅ one Noul question per topic with id topic_<id> — got `[('noul', 'topic_1'), ('noul', 'topic_4')]`, expected `[('noul', 'topic_1'), ('noul', 'topic_4')]`
-- ✅ the statement includes the topic card text
+- ✅ one noul question per topic with key topic_<id> — got `['topic_1', 'topic_4']`, expected `['topic_1', 'topic_4']`
+- ✅ question type is noul
+- ✅ the instructions include the topic card text
 - ✅ all topics are asked in ONE call — got `1`, expected `1`
 - ✅ no topics: empty result — got `{}`, expected `{}`
-- ✅ and Jev is not called — got `[]`, expected `[]`
-- ✅ the placeholder JevClient.ask raises NotImplementedError (raised NotImplementedError)
+- ✅ and Laya is not called — got `[]`, expected `[]`
 
 **Result: ✅ PASS**  (7 checks, 0 failed, 0 turns, 0.00s)
 
@@ -5130,6 +5134,253 @@
 - ✅ the placeholder _call_llm raises NotImplementedError (raised NotImplementedError)
 
 **Result: ✅ PASS**  (8 checks, 0 failed, 0 turns, 0.00s)
+
+---
+
+## L1 — Laya exported recycled router
+
+> get_shared_router returns a singleton, resets cleanly, and is importable as router.
+
+- ✅ get_shared_router returns the same cached instance
+- ✅ instance matches the underlying Router
+- ✅ module-level 'router' property resolves to shared router
+- ✅ module-level 'shared_router' resolves to shared router
+- ✅ reset_shared_router clears the singleton instance
+
+**Result: ✅ PASS**  (5 checks, 0 failed, 0 turns, 0.33s)
+
+---
+
+## L2 — Laya topic card formatting in criteria
+
+> format_topic_card formats topic card content and appears in choice/noul questions.
+
+- ✅ formatted text includes label
+- ✅ formatted text includes summary description
+- ✅ formatted text includes key facts
+- ✅ formatted text includes entities
+- ✅ decide returns continue — got `'continue'`, expected `'continue'`
+- ✅ continue option has rich open card summary
+- ✅ return:2 option has rich closed card summary
+- ✅ return:2 option contains closed card description
+
+**Result: ✅ PASS**  (8 checks, 0 failed, 0 turns, 0.00s)
+
+---
+
+## L3 — LayaSegmenter multi topic decision flow
+
+> LayaSegmenter handles continue, new, return, strict thresholds, and fallback rules.
+
+- ✅ no open topic -> new — got `'new'`, expected `'new'`
+- ✅ confident continue — got `('continue', None)`, expected `('continue', None)`
+- ✅ confident new — got `('new', None)`, expected `('new', None)`
+- ✅ confident return to topic 1 — got `('return', 1)`, expected `('return', 1)`
+- ✅ return below return_threshold defaults to new — got `'new'`, expected `'new'`
+- ✅ low confidence defaults to safe continue — got `'continue'`, expected `'continue'`
+
+**Result: ✅ PASS**  (6 checks, 0 failed, 0 turns, 0.00s)
+
+---
+
+## L4 — LayaRouter noul topic relevance batching
+
+> LayaRouter batches all closed topics into one predict call with noul questions.
+
+- ✅ all 3 topics scored in exactly ONE forward pass — got `1`, expected `1`
+- ✅ probabilities correctly returned per topic id — got `{1: 0.89, 2: 0.12, 3: 0.04}`, expected `{1: 0.89, 2: 0.12, 3: 0.04}`
+- ✅ all questions are type: noul
+- ✅ topic 1 instructions include its key facts
+- ✅ topic 2 instructions include its description
+- ✅ empty topics -> empty dict — got `{}`, expected `{}`
+- ✅ no predict call made when topics list is empty — got `0`, expected `0`
+
+**Result: ✅ PASS**  (7 checks, 0 failed, 0 turns, 0.00s)
+
+---
+
+## L5 — Laya integrated ContextManager pipeline
+
+> ContextManager with LayaSegmenter and LayaRouter handles multi-turn transitions and page migration.
+
+### Turn 1 [Laya pipeline]: "I was charged twice for March on invoice #4411 lorem ipsum dolor sit amet lorem "
+
+- **Reply (assistant)**: Looking into invoice #4411 lorem ipsum dolor sit amet lorem 
+- **Events in prepare_context**: `new topic 1`
+- **Events in record_reply**: none
+- ✅ **Invariants**: all 11 hold
+
+**Topic table**
+
+| ID | Status | Label | Key facts | Entities | Pages | Covered |
+|:-:|:-:|:--|:--|:--|:-:|:-:|
+| 1 | 🟢 open | `I was charged twice for March on invo...` | - | - | `[0]` | -1 |
+
+**Page table**
+
+| Page | Layer | Topic | Tokens | Open | First message |
+|:-:|:-:|:-:|:-:|:-:|:--|
+| 0 | **L1** | 1 | 35 | yes | I was charged twice for March on invoice #4411 ... |
+
+**L1 after prepare_context**: `[#######.....|.......|...................]` 20/120 tok (17%); `|` marks low 30% / high 50%; L1 pages `[0]`, L2 pages `[]`
+
+**L1 after record_reply**: `[############|.......|...................]` 35/120 tok (29%); `|` marks low 30% / high 50%; L1 pages `[0]`, L2 pages `[]`
+
+**Prompt sent to the model**
+
+> **[USER]** I was charged twice for March on invoice #4411 lorem ipsum dolor sit amet lorem 
+
+<details><summary>Page contents (final state)</summary>
+
+- **L1 page 0** (topic 1, 35 tok, OPEN)
+  - `user`: I was charged twice for March on invoice #4411 lorem ipsum dolor sit amet lorem 
+  - `assistant`: Looking into invoice #4411 lorem ipsum dolor sit amet lorem 
+
+</details>
+
+- ✅ turn 1: Topic 1 is open — got `1`, expected `1`
+- ✅ turn 1: page 0 is in L1 — got `'L1'`, expected `'L1'`
+### Turn 2 [Laya pipeline]: "Please process the $120 refund lorem ips"
+
+- **Reply (assistant)**: Refund requested lorem ipsum dolor sit a
+- **Events in prepare_context**: none
+- **Events in record_reply**: none
+- ✅ **Invariants**: all 11 hold
+
+**Topic table**
+
+| ID | Status | Label | Key facts | Entities | Pages | Covered |
+|:-:|:-:|:--|:--|:--|:-:|:-:|
+| 1 | 🟢 open | `I was charged twice for March on invo...` | - | - | `[0]` | -1 |
+
+**Page table**
+
+| Page | Layer | Topic | Tokens | Open | First message |
+|:-:|:-:|:-:|:-:|:-:|:--|
+| 0 | **L1** | 1 | 55 | yes | I was charged twice for March on invoice #4411 ... |
+
+**L1 after prepare_context**: `[############|##.....|...................]` 45/120 tok (38%); `|` marks low 30% / high 50%; L1 pages `[0]`, L2 pages `[]`
+
+**L1 after record_reply**: `[############|#####..|...................]` 55/120 tok (46%); `|` marks low 30% / high 50%; L1 pages `[0]`, L2 pages `[]`
+
+**Prompt sent to the model**
+
+> **[USER]** I was charged twice for March on invoice #4411 lorem ipsum dolor sit amet lorem 
+> **[ASSISTANT]** Looking into invoice #4411 lorem ipsum dolor sit amet lorem 
+> **[USER]** Please process the $120 refund lorem ips
+
+<details><summary>Page contents (final state)</summary>
+
+- **L1 page 0** (topic 1, 55 tok, OPEN)
+  - `user`: I was charged twice for March on invoice #4411 lorem ipsum dolor sit amet lorem 
+  - `assistant`: Looking into invoice #4411 lorem ipsum dolor sit amet lorem 
+  - `user`: Please process the $120 refund lorem ips
+  - `assistant`: Refund requested lorem ipsum dolor sit a
+
+</details>
+
+- ✅ turn 2: Topic 1 remains open — got `1`, expected `1`
+### Turn 3 [Laya pipeline]: "Now help me fix the auth token expiry bug lorem ipsum dolor sit amet lorem ipsum dolor sit amet lore"
+
+- **Reply (assistant)**: Checking auth.py lorem ipsum dolor sit amet lorem ipsum dolo
+- **Events in prepare_context**: `closed topic 1, card: invoice / sit / ips`, `new topic 2`, `move page 0: L1 -> L2`
+- **Events in record_reply**: none
+- ✅ **Invariants**: all 11 hold
+
+**Topic table**
+
+| ID | Status | Label | Key facts | Entities | Pages | Covered |
+|:-:|:-:|:--|:--|:--|:-:|:-:|
+| 1 | 🔴 closed | `invoice / sit / ips` | I was charged twice for March on invoice #4411 lorem ipsu... | invoice, sit, ips, looking, process | `[0]` | 0 |
+| 2 | 🟢 open | `Now help me fix the auth token expiry...` | - | - | `[1]` | -1 |
+
+**Page table**
+
+| Page | Layer | Topic | Tokens | Open | First message |
+|:-:|:-:|:-:|:-:|:-:|:--|
+| 0 | **L2** | 1 | 55 |  | I was charged twice for March on invoice #4411 ... |
+| 1 | **L1** | 2 | 40 | yes | Now help me fix the auth token expiry bug lorem... |
+
+**L1 after prepare_context**: `[########....|.......|...................]` 25/120 tok (21%); `|` marks low 30% / high 50%; L1 pages `[1]`, L2 pages `[0]`
+
+**L1 after record_reply**: `[############|.......|...................]` 40/120 tok (33%); `|` marks low 30% / high 50%; L1 pages `[1]`, L2 pages `[0]`
+
+**Prompt sent to the model**
+
+> **[SYSTEM]** [earlier messages omitted]
+> **[USER]** Now help me fix the auth token expiry bug lorem ipsum dolor sit amet lorem ipsum dolor sit amet lore
+
+<details><summary>Page contents (final state)</summary>
+
+- **L1 page 1** (topic 2, 40 tok, OPEN)
+  - `user`: Now help me fix the auth token expiry bug lorem ipsum dolor sit amet lorem ipsum dolor ...
+  - `assistant`: Checking auth.py lorem ipsum dolor sit amet lorem ipsum dolo
+- **L2 page 0** (topic 1, 55 tok)
+  - `user`: I was charged twice for March on invoice #4411 lorem ipsum dolor sit amet lorem 
+  - `assistant`: Looking into invoice #4411 lorem ipsum dolor sit amet lorem 
+  - `user`: Please process the $120 refund lorem ips
+  - `assistant`: Refund requested lorem ipsum dolor sit a
+
+</details>
+
+- ✅ turn 3: Topic 2 is now open — got `2`, expected `2`
+- ✅ turn 3: Topic 1 is closed
+- ✅ turn 3: page 0 was demoted to L2 due to watermarks — got `'L2'`, expected `'L2'`
+### Turn 4 [Laya pipeline]: "Did the refund for invoice #4411 process"
+
+- **Reply (assistant)**: Yes refund completed lorem ipsum dolor s
+- **Events in prepare_context**: `closed topic 2, card: token / sit / checking`, `return to topic 1 (invoice / sit / ips)`, `move page 0: L2 -> L1`, `move page 1: L1 -> L2`
+- **Events in record_reply**: none
+- ✅ **Invariants**: all 11 hold
+
+**Topic table**
+
+| ID | Status | Label | Key facts | Entities | Pages | Covered |
+|:-:|:-:|:--|:--|:--|:-:|:-:|
+| 1 | 🟢 open | `invoice / sit / ips` | I was charged twice for March on invoice #4411 lorem ipsu... | invoice, sit, ips, looking, process | `[0, 2]` | 0 |
+| 2 | 🔴 closed | `token / sit / checking` | Now help me fix the auth token expiry bug lorem ipsum dol... | token, sit, checking, expiry, dolo | `[1]` | 1 |
+
+**Page table**
+
+| Page | Layer | Topic | Tokens | Open | First message |
+|:-:|:-:|:-:|:-:|:-:|:--|
+| 0 | **L1** | 1 | 55 |  | I was charged twice for March on invoice #4411 ... |
+| 1 | **L2** | 2 | 40 |  | Now help me fix the auth token expiry bug lorem... |
+| 2 | **L1** | 1 | 20 | yes | Did the refund for invoice #4411 process |
+
+**L1 after prepare_context**: `[############|#######|#..................]` 65/120 tok (54%); `|` marks low 30% / high 50%; L1 pages `[0, 2]`, L2 pages `[1]`
+
+**L1 after record_reply**: `[############|#######|####...............]` 75/120 tok (62%); `|` marks low 30% / high 50%; L1 pages `[0, 2]`, L2 pages `[1]`
+
+**Prompt sent to the model**
+
+> **[USER]** I was charged twice for March on invoice #4411 lorem ipsum dolor sit amet lorem 
+> **[ASSISTANT]** Looking into invoice #4411 lorem ipsum dolor sit amet lorem 
+> **[USER]** Please process the $120 refund lorem ips
+> **[ASSISTANT]** Refund requested lorem ipsum dolor sit a
+> **[SYSTEM]** [earlier messages omitted]
+> **[USER]** Did the refund for invoice #4411 process
+
+<details><summary>Page contents (final state)</summary>
+
+- **L1 page 0** (topic 1, 55 tok)
+  - `user`: I was charged twice for March on invoice #4411 lorem ipsum dolor sit amet lorem 
+  - `assistant`: Looking into invoice #4411 lorem ipsum dolor sit amet lorem 
+  - `user`: Please process the $120 refund lorem ips
+  - `assistant`: Refund requested lorem ipsum dolor sit a
+- **L1 page 2** (topic 1, 20 tok, OPEN)
+  - `user`: Did the refund for invoice #4411 process
+  - `assistant`: Yes refund completed lorem ipsum dolor s
+- **L2 page 1** (topic 2, 40 tok)
+  - `user`: Now help me fix the auth token expiry bug lorem ipsum dolor sit amet lorem ipsum dolor ...
+  - `assistant`: Checking auth.py lorem ipsum dolor sit amet lorem ipsum dolo
+
+</details>
+
+- ✅ turn 4: Topic 1 reopened via return:1 — got `1`, expected `1`
+- ✅ turn 4: page 0 was brought back into L1 from L2 — got `'L1'`, expected `'L1'`
+
+**Result: ✅ PASS**  (8 checks, 0 failed, 4 turns, 0.00s)
 
 ---
 
@@ -5175,7 +5426,7 @@
 ### Turn 2: "Explain quantum computing qubits superposition entanglement"
 
 - **Reply (assistant)**: Qubits use superposition and entanglement.
-- **Events in prepare_context**: `closed topic 1, card: offer / baga / anjuna`, `new topic 2`
+- **Events in prepare_context**: `closed topic 1, card: sport / baga / tell`, `new topic 2`
 - **Events in record_reply**: none
 - ✅ **Invariants**: all 11 hold
 
@@ -5183,7 +5434,7 @@
 
 | ID | Status | Label | Key facts | Entities | Pages | Covered |
 |:-:|:-:|:--|:--|:--|:-:|:-:|
-| 1 | 🔴 closed | `offer / baga / anjuna` | Tell me about Goa beaches Anjuna nightlife and Baga water... | offer, baga, anjuna, trance, nightlife | `[0]` | 0 |
+| 1 | 🔴 closed | `sport / baga / tell` | Tell me about Goa beaches Anjuna nightlife and Baga water... | sport, baga, tell, partie, offer | `[0]` | 0 |
 | 2 | 🟢 open | `Explain quantum computing qubits supe...` | - | - | `[1]` | -1 |
 
 **Page table**
@@ -5217,7 +5468,7 @@
 ### Turn 3: "How do Docker containers and Kubernetes orchestration work"
 
 - **Reply (assistant)**: Docker packages apps. Kubernetes schedules containers.
-- **Events in prepare_context**: `closed topic 2, card: computing / superposition / quantum`, `new topic 3`
+- **Events in prepare_context**: `closed topic 2, card: computing / use / entanglement`, `new topic 3`
 - **Events in record_reply**: none
 - ✅ **Invariants**: all 11 hold
 
@@ -5225,8 +5476,8 @@
 
 | ID | Status | Label | Key facts | Entities | Pages | Covered |
 |:-:|:-:|:--|:--|:--|:-:|:-:|
-| 1 | 🔴 closed | `offer / baga / anjuna` | Tell me about Goa beaches Anjuna nightlife and Baga water... | offer, baga, anjuna, trance, nightlife | `[0]` | 0 |
-| 2 | 🔴 closed | `computing / superposition / quantum` | Explain quantum computing qubits superposition entanglement | computing, superposition, quantum, ex... | `[1]` | 1 |
+| 1 | 🔴 closed | `sport / baga / tell` | Tell me about Goa beaches Anjuna nightlife and Baga water... | sport, baga, tell, partie, offer | `[0]` | 0 |
+| 2 | 🔴 closed | `computing / use / entanglement` | Explain quantum computing qubits superposition entanglement | computing, use, entanglement, explain... | `[1]` | 1 |
 | 3 | 🟢 open | `How do Docker containers and Kubernet...` | - | - | `[2]` | -1 |
 
 **Page table**
@@ -5266,7 +5517,7 @@
 ### Turn 4: "Which Goa beach has the best Anjuna nightlife"
 
 - **Reply (assistant)**: Anjuna is the nightlife hub.
-- **Events in prepare_context**: `closed topic 3, card: schedule / orchestration / work`, `return to topic 1 (offer / baga / anjuna)`
+- **Events in prepare_context**: `closed topic 3, card: schedule / package / orchestration`, `return to topic 1 (sport / baga / tell)`
 - **Events in record_reply**: none
 - ✅ **Invariants**: all 11 hold
 
@@ -5274,9 +5525,9 @@
 
 | ID | Status | Label | Key facts | Entities | Pages | Covered |
 |:-:|:-:|:--|:--|:--|:-:|:-:|
-| 1 | 🟢 open | `offer / baga / anjuna` | Tell me about Goa beaches Anjuna nightlife and Baga water... | offer, baga, anjuna, trance, nightlife | `[0, 3]` | 0 |
-| 2 | 🔴 closed | `computing / superposition / quantum` | Explain quantum computing qubits superposition entanglement | computing, superposition, quantum, ex... | `[1]` | 1 |
-| 3 | 🔴 closed | `schedule / orchestration / work` | How do Docker containers and Kubernetes orchestration work | schedule, orchestration, work, kubern... | `[2]` | 2 |
+| 1 | 🟢 open | `sport / baga / tell` | Tell me about Goa beaches Anjuna nightlife and Baga water... | sport, baga, tell, partie, offer | `[0, 3]` | 0 |
+| 2 | 🔴 closed | `computing / use / entanglement` | Explain quantum computing qubits superposition entanglement | computing, use, entanglement, explain... | `[1]` | 1 |
+| 3 | 🔴 closed | `schedule / package / orchestration` | How do Docker containers and Kubernetes orchestration work | schedule, package, orchestration, wor... | `[2]` | 2 |
 
 **Page table**
 
@@ -5321,7 +5572,7 @@
 ### Turn 5: "Can Kubernetes scale Docker containers automatically"
 
 - **Reply (assistant)**: Yes, with autoscaling.
-- **Events in prepare_context**: `closed topic 1, card: offer / baga / anjuna`, `return to topic 3 (schedule / orchestration / work)`, `move page 0: L1 -> L2`, `move page 1: L1 -> L2`
+- **Events in prepare_context**: `closed topic 1, card: sport / baga / tell`, `return to topic 3 (schedule / package / orchestration)`, `move page 0: L1 -> L2`, `move page 1: L1 -> L2`
 - **Events in record_reply**: none
 - ✅ **Invariants**: all 11 hold
 
@@ -5329,9 +5580,9 @@
 
 | ID | Status | Label | Key facts | Entities | Pages | Covered |
 |:-:|:-:|:--|:--|:--|:-:|:-:|
-| 1 | 🔴 closed | `offer / baga / anjuna` | Tell me about Goa beaches Anjuna nightlife and Baga water... | offer, baga, anjuna, trance, nightlife | `[0, 3]` | 3 |
-| 2 | 🔴 closed | `computing / superposition / quantum` | Explain quantum computing qubits superposition entanglement | computing, superposition, quantum, ex... | `[1]` | 1 |
-| 3 | 🟢 open | `schedule / orchestration / work` | How do Docker containers and Kubernetes orchestration work | schedule, orchestration, work, kubern... | `[2, 4]` | 2 |
+| 1 | 🔴 closed | `sport / baga / tell` | Tell me about Goa beaches Anjuna nightlife and Baga water... | sport, baga, tell, partie, offer | `[0, 3]` | 3 |
+| 2 | 🔴 closed | `computing / use / entanglement` | Explain quantum computing qubits superposition entanglement | computing, use, entanglement, explain... | `[1]` | 1 |
+| 3 | 🟢 open | `schedule / package / orchestration` | How do Docker containers and Kubernetes orchestration work | schedule, package, orchestration, wor... | `[2, 4]` | 2 |
 
 **Page table**
 
@@ -5379,7 +5630,7 @@
 ### Turn 6: "What is the GDP of India and its growth rate"
 
 - **Reply (assistant)**: About 3.7 trillion dollars.
-- **Events in prepare_context**: `closed topic 3, card: schedule / orchestration / work`, `new topic 4`
+- **Events in prepare_context**: `closed topic 3, card: schedule / package / orchestration`, `new topic 4`
 - **Events in record_reply**: none
 - ✅ **Invariants**: all 11 hold
 
@@ -5387,9 +5638,9 @@
 
 | ID | Status | Label | Key facts | Entities | Pages | Covered |
 |:-:|:-:|:--|:--|:--|:-:|:-:|
-| 1 | 🔴 closed | `offer / baga / anjuna` | Tell me about Goa beaches Anjuna nightlife and Baga water... | offer, baga, anjuna, trance, nightlife | `[0, 3]` | 3 |
-| 2 | 🔴 closed | `computing / superposition / quantum` | Explain quantum computing qubits superposition entanglement | computing, superposition, quantum, ex... | `[1]` | 1 |
-| 3 | 🔴 closed | `schedule / orchestration / work` | How do Docker containers and Kubernetes orchestration wor... | schedule, orchestration, work, kubern... | `[2, 4]` | 4 |
+| 1 | 🔴 closed | `sport / baga / tell` | Tell me about Goa beaches Anjuna nightlife and Baga water... | sport, baga, tell, partie, offer | `[0, 3]` | 3 |
+| 2 | 🔴 closed | `computing / use / entanglement` | Explain quantum computing qubits superposition entanglement | computing, use, entanglement, explain... | `[1]` | 1 |
+| 3 | 🔴 closed | `schedule / package / orchestration` | How do Docker containers and Kubernetes orchestration wor... | schedule, package, orchestration, wor... | `[2, 4]` | 4 |
 | 4 | 🟢 open | `What is the GDP of India and its grow...` | - | - | `[5]` | -1 |
 
 **Page table**
@@ -5446,7 +5697,7 @@
 - ✅ [heuristic] turn 4 (back to Goa): the old Goa answer is in the prompt again
 - ✅ [heuristic] turn 5 (back to Docker): the old Docker answer is in the prompt again
 
-**Result: ✅ PASS**  (4 checks, 0 failed, 6 turns, 0.00s)
+**Result: ✅ PASS**  (4 checks, 0 failed, 6 turns, 0.01s)
 
 ---
 
@@ -5465,4 +5716,4 @@
 *960 random turns; 124 of them raised L1FullError (allowed, but see T3/T6: a raised error must not lose the reply or half-apply a turn).*
 
 
-**Result: ✅ PASS**  (8 checks, 0 failed, 0 turns, 0.46s)
+**Result: ✅ PASS**  (8 checks, 0 failed, 0 turns, 0.88s)

@@ -10,12 +10,16 @@ You get the previous card (may be empty) and the new pages since it was written.
 Return ONLY JSON: {"label": str, "description": str, "key_facts": [str], "entities": [str]}
 
 Rules:
-1. label: 8 words or fewer.
-2. description: 2-3 sentences, what was discussed and how it ended.
-3. key_facts: concrete values only (names, numbers, filenames, choices, decisions), one per item.
-4. If a new fact contradicts an old one, replace the old one. Do not keep both.
-5. Never drop a still-valid fact to save space. Never invent anything.
-6. Keep the whole card under about 150 tokens.
+1. label: 8 words or fewer naming the active topic.
+2. description: 2-3 sentences stating ONLY the currently valid, agreed-upon factual state of this topic.
+   - Ground-truth snapshot only: State what is currently true, active, and decided right now.
+   - NO chronological storytelling or changelogs: NEVER write statements describing past revision history (e.g. do NOT say "user initially wanted X but later adjusted to Y", "user changed mind", or "decided against Z").
+   - Drop obsolete or superseded context completely so downstream semantic routing is never misled by outdated details.
+3. key_facts: Concrete values only (names, IDs, numbers, file paths, finalized decisions, preferences), one per item.
+4. Overwrite contradicted facts: If new information contradicts or updates an old fact, replace the old one completely. Never keep both past and present versions.
+5. Never drop a still-valid fact to save space. Never invent anything not stated in the pages.
+6. entities: Key proper nouns and specific identifiers that remain currently relevant.
+7. Keep the whole card concise (under ~150 tokens).
 """
 
 

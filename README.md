@@ -24,8 +24,8 @@ This fie contains all the necessary information for understanding and implementi
    - [TopicTable](#topictable)
 5. [Cognitive Deciders Subsystem (`prism.deciders`)](#5-cognitive-deciders-subsystem-prismdeciders)
    - [SegmentDecision & Segmenter Protocol](#segmentdecision--segmenter-protocol)
-   - [KeywordSegmenter & JevSegmenter](#keywordsegmenter--jevsegmenter)
-   - [Router Protocol, KeywordRouter & JevRouter](#router-protocol-keywordrouter--jevrouter)
+   - [KeywordSegmenter, LayaSegmenter & JevSegmenter](#keywordsegmenter-layasegmenter--jevsegmenter)
+   - [Router Protocol, KeywordRouter, LayaRouter & JevRouter](#router-protocol-keywordrouter-layarouter--jevrouter)
    - [CardWriter Protocol, FakeCardWriter & LLMCardWriter](#cardwriter-protocol-fakecardwriter--llmcardwriter)
 6. [Orchestrator: ContextManager (`prism.context_manager`)](#6-orchestrator-contextmanager-prismcontext_manager)
    - [Class Responsibilities & State Attributes](#class-responsibilities--state-attributes)
@@ -561,6 +561,16 @@ classDiagram
     class FakeCardWriter {
         +write(...) TopicCard
     }
+    class LayaSegmenter {
+        +float min_confidence
+        +float return_threshold
+        +str model
+        +decide(...) SegmentDecision
+    }
+    class LayaRouter {
+        +str model
+        +score(...) dict~int, float~
+    }
     class JevSegmenter {
         +JevClient client
         +float min_confidence
@@ -576,8 +586,10 @@ classDiagram
         +_call_llm(prompt) str
     }
     Segmenter <|.. KeywordSegmenter
+    Segmenter <|.. LayaSegmenter
     Segmenter <|.. JevSegmenter
     Router <|.. KeywordRouter
+    Router <|.. LayaRouter
     Router <|.. JevRouter
     CardWriter <|.. FakeCardWriter
     CardWriter <|.. LLMCardWriter
@@ -610,7 +622,7 @@ class Segmenter(Protocol):
 
 ---
 
-### `KeywordSegmenter` & `JevSegmenter`
+### `KeywordSegmenter`, `LayaSegmenter` & `JevSegmenter`
 
 #### `KeywordSegmenter`
 Defined in [`prism/deciders/fakes.py:L38-L72`](file:///d:/Projects/PRISM/files/prism/deciders/fakes.py#L38-L72). Fast, zero-dependency offline implementation based on vocabulary overlap:
@@ -621,12 +633,19 @@ Defined in [`prism/deciders/fakes.py:L38-L72`](file:///d:/Projects/PRISM/files/p
 5. If `open_score >= continue_threshold (0.2)` or `len(msg_words) <= 2` (short replies like "yes", "got it"), emits `SegmentDecision("continue")`.
 6. Otherwise, emits `SegmentDecision("new")`.
 
+#### `LayaSegmenter`
+Defined in [`prism/deciders/laya_decider.py:L64-L141`](file:///d:/Projects/PRISM/files/prism/deciders/laya_decider.py#L64-L141). Production System One segmenter powered by the Laya SDK (`convaiinnovations/laya`). Formulates a single fast `choice` question:
+- Evaluates recent context and newest user message against choices: `"continue"` (current topic), `"new"` (starts new topic), and `"return:<id>"` for each closed topic.
+- Produces calibrated confidence scores for sub-millisecond decision making.
+- Safely falls back to `"continue"` if model confidence is below `min_confidence (0.6)`.
+- If a return option is chosen with probability below `return_threshold (0.8)`, strictly merges as `"new"`.
+
 #### `JevSegmenter`
-Defined in [`prism/deciders/jev.py:L31-L76`](file:///d:/Projects/PRISM/files/prism/deciders/jev.py#L31-L76). Production implementation using TypeSafe AI's Jev API. Formulates a single fast `Choice` question with up to 255 options (`"continue"`, `"new"`, and `"return:<id>"` for each closed topic). If model confidence is below `min_confidence (0.6)`, it defaults safely to `"continue"`.
+Defined in [`prism/deciders/jev.py:L31-L76`](file:///d:/Projects/PRISM/files/prism/deciders/jev.py#L31-L76). Placeholder decider for TypeSafe AI's early-access Jev API.
 
 ---
 
-### `Router` Protocol, `KeywordRouter` & `JevRouter`
+### `Router` Protocol, `KeywordRouter`, `LayaRouter` & `JevRouter`
 Defined in [`prism/deciders/interfaces.py:L28-L37`](file:///d:/Projects/PRISM/files/prism/deciders/interfaces.py#L28-L37).
 
 #### `Router` Signature
@@ -644,6 +663,10 @@ Returns a mapping of `{topic_id: probability_needed}` where probability is betwe
 #### `KeywordRouter`
 Defined in [`prism/deciders/fakes.py:L74-L83`](file:///d:/Projects/PRISM/files/prism/deciders/fakes.py#L74-L83).  
 Computes `min(1.0, 2 * overlap(msg_words, words(topic.card.as_text())))`.
+
+#### `LayaRouter`
+Defined in [`prism/deciders/laya_decider.py:L143-L199`](file:///d:/Projects/PRISM/files/prism/deciders/laya_decider.py#L143-L199).
+Constructs batched `noul` calibration questions in a single `router.predict()` call across all closed topics. Returns calibrated probabilities `{topic_id: probability}` to bring wanted topics from `L2` into `L1`.
 
 #### `JevRouter`
 Defined in [`prism/deciders/jev.py:L78-L102`](file:///d:/Projects/PRISM/files/prism/deciders/jev.py#L78-L102).  

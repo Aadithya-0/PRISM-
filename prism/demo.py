@@ -6,6 +6,7 @@ Can be run as:
     python prism/demo.py
 """
 import sys
+import argparse
 from pathlib import Path
 
 # Prevent Python from creating __pycache__ folders
@@ -23,6 +24,8 @@ from prism import (
     KeywordSegmenter,
     L1,
     L2,
+    LayaRouter,
+    LayaSegmenter,
     PageTable,
     TopicTable,
 )
@@ -44,13 +47,26 @@ SCRIPT = [
 
 
 def main() -> None:
+    parser = argparse.ArgumentParser(description="PRISM demo conversation")
+    parser.add_argument("--laya", action="store_true", help="Use Laya deciders (LayaSegmenter + LayaRouter)")
+    args = parser.parse_args()
+
+    if args.laya:
+        print("[PRISM demo] Using Laya deciders (LayaSegmenter + LayaRouter)...")
+        segmenter = LayaSegmenter()
+        router = LayaRouter()
+    else:
+        print("[PRISM demo] Using Keyword deciders (fast, offline)...")
+        segmenter = KeywordSegmenter()
+        router = KeywordRouter()
+
     manager = ContextManager(
         l1=L1(max_tokens=120, high_water=0.85, low_water=0.70),
         l2=L2(),
         topics=TopicTable(),
         page_table=PageTable(),
-        segmenter=KeywordSegmenter(),
-        router=KeywordRouter(),
+        segmenter=segmenter,
+        router=router,
         card_writer=FakeCardWriter(),
         needed_threshold=0.4,
         protect_recent_pages=1,

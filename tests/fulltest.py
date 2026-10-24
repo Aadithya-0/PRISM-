@@ -37,7 +37,14 @@ if str(ROOT_DIR) not in sys.path:
 
 from prism import (ContextManager, FakeCardWriter, KeywordRouter, KeywordSegmenter, L1, L1FullError, L2,
                    Message, PageBlock, PageTable, SegmentDecision, TopicTable)
-from prism.deciders import JevClient, JevRouter, JevSegmenter, LLMCardWriter
+from prism.deciders import (
+    LLMCardWriter,
+    LayaRouter,
+    LayaSegmenter,
+    format_topic_card,
+    get_shared_router,
+    reset_shared_router,
+)
 from prism.models import Topic, TopicCard
 from prism.storage import LocationBook
 
@@ -321,15 +328,15 @@ class SpyCardWriter:
         return self.inner.write(old_card, pages)
 
 
-class MockJev:
-    """Stands in for the Jev API: returns a canned answer and records what it was asked."""
+class MockLayaRouter:
+    """Stands in for laya.Router: returns Laya-shaped responses and records calls."""
 
-    def __init__(self, answer):
-        self.answer, self.calls = answer, []
+    def __init__(self, answers):
+        self.answers, self.calls = answers, []
 
-    def ask(self, state, questions):
-        self.calls.append(dict(state=state, questions=questions))
-        return self.answer
+    def predict(self, state, questions, **kw):
+        self.calls.append(dict(state=state, questions=questions, kwargs=kw))
+        return {"answers": self.answers, "routing": {"model": "english"}}
 
 
 class Harness:
@@ -975,45 +982,56 @@ class TestDeciders(PrismCase):
         many = [PageBlock(seq=i, topic_id=1, data=[Message("user", f"word{chr(97 + i)}x wordb{chr(97 + i)}y")], is_open=False) for i in range(12)]
         self.check(len(w.write(None, many).entities) <= 10, "entities are capped at 10")
 
-    def test_D4_JevSegmenter_decision_rules(self):
-        """JevSegmenter turns Jev's answer into a decision: confidence floor, strict return threshold, question shape."""
+    def test_D4_LayaSegmenter_decision_rules(self):
+        """LayaSegmenter turns Laya's answer into a decision: confidence floor, strict return threshold, question shape."""
+        from unittest.mock import patch
         op = topic_with(3, "python decorators", open_=True)
         closed = [topic_with(1, "goa trip"), topic_with(2, "quantum")]
         msg = Message("user", "hello")
         recent = [Message("user", "earlier text")]
 
-        def run(answer, **kw):
-            client = MockJev({"segment": answer})
-            return JevSegmenter(client, **kw).decide(op, closed, recent, msg), client
-        d, client = run({"choice": "continue", "confidence": 0.9, "probabilities": {}})
-        q = client.calls[0]["questions"][0]
-        self.check(q["type"] == "choice" and q["id"] == "segment", "asks one Choice question with id 'segment'")
-        self.eq(sorted(q["options"]), ["continue", "new", "return:1", "return:2"], "options: continue, new and one return:<id> per closed topic")
-        self.check("NEWEST user message: hello" in client.calls[0]["state"] and "earlier text" in client.calls[0]["state"], "state contains the recent messages and the newest one")
-        self.eq(d.action, "continue", "choice 'continue' -> continue")
-        self.eq(run({"choice": "new", "confidence": 0.9, "probabilities": {}})[0].action, "new", "choice 'new' -> new")
-        self.eq(run({"choice": "return:2", "confidence": 0.9, "probabilities": {"return:2": 0.9}})[0].topic_id, 2, "confident return:2 -> return to topic 2")
-        self.eq(run({"choice": "return:2", "confidence": 0.9, "probabilities": {"return:2": 0.7}})[0].action, "new", "return with probability 0.7 < 0.8: treated as new (strict merge)")
-        self.eq(run({"choice": "return:2", "confidence": 0.5, "probabilities": {"return:2": 0.95}})[0].action, "continue", "confidence 0.5 < 0.6: falls back to continue")
-        self.eq(run({"choice": "return:2", "confidence": 0.9, "probabilities": {}})[0].action, "new", "return without a probability: treated as new, no crash")
-        nd = MockJev({})
-        self.eq(JevSegmenter(nd).decide(None, closed, [], msg).action, "new", "no open topic: new")
-        self.eq(nd.calls, [], "and Jev is not called at all in that case")
+        def run(choice, confidence, probabilities=None, **kw):
+            reset_shared_router()
+            probabilities = probabilities or {}
+            mock = MockLayaRouter({"segment": {"choice": choice, "confidence": confidence, "probabilities": probabilities}})
+            with patch("prism.deciders.laya_decider._get_laya_router", return_value=mock):
+                d = LayaSegmenter(**kw).decide(op, closed, recent, msg)
+            return d, mock
 
-    def test_D5_JevRouter_builds_one_question_per_topic(self):
-        """JevRouter asks one Noul question per closed topic and returns their probabilities."""
+        d, mock = run("continue", 0.9)
+        q = mock.calls[0]["questions"]["segment"]
+        self.check(q["type"] == "choice", "asks a choice question")
+        self.eq(sorted(q["criteria"].keys()), ["continue", "new", "return:1", "return:2"], "criteria: continue, new and one return:<id> per closed topic")
+        self.check("NEWEST user message: hello" in mock.calls[0]["state"] and "earlier text" in mock.calls[0]["state"], "state contains the recent messages and the newest one")
+        self.eq(d.action, "continue", "choice 'continue' -> continue")
+        self.eq(run("new", 0.9)[0].action, "new", "choice 'new' -> new")
+        self.eq(run("return:2", 0.9, {"return:2": 0.9})[0].topic_id, 2, "confident return:2 -> return to topic 2")
+        self.eq(run("return:2", 0.9, {"return:2": 0.7})[0].action, "new", "return with probability 0.7 < 0.8: treated as new (strict merge)")
+        self.eq(run("return:2", 0.5, {"return:2": 0.95})[0].action, "continue", "confidence 0.5 < 0.6: falls back to continue")
+        self.eq(run("return:2", 0.9, {})[0].action, "new", "return without a probability: treated as new, no crash")
+        reset_shared_router()
+        seg = LayaSegmenter()
+        self.eq(seg.decide(None, closed, [], msg).action, "new", "no open topic: new (no Laya call needed)")
+
+    def test_D5_LayaRouter_builds_one_question_per_topic(self):
+        """LayaRouter asks one noul question per closed topic and returns their probabilities."""
+        from unittest.mock import patch
         topics = [topic_with(1, "goa trip", ["likes beaches"]), topic_with(4, "quantum")]
-        client = MockJev({"topic_1": {"noul": 0.9}, "topic_4": {"noul": 0.1}})
-        out = JevRouter(client).score(topics, [Message("user", "before")], Message("user", "which beach"))
+        reset_shared_router()
+        mock = MockLayaRouter({"topic_1": {"noul": 0.9}, "topic_4": {"noul": 0.1}})
+        with patch("prism.deciders.laya_decider._get_laya_router", return_value=mock):
+            out = LayaRouter().score(topics, [Message("user", "before")], Message("user", "which beach"))
         self.eq(out, {1: 0.9, 4: 0.1}, "returns {topic_id: probability}")
-        qs = client.calls[0]["questions"]
-        self.eq([(q["type"], q["id"]) for q in qs], [("noul", "topic_1"), ("noul", "topic_4")], "one Noul question per topic with id topic_<id>")
-        self.check("likes beaches" in qs[0]["statement"], "the statement includes the topic card text")
-        self.eq(len(client.calls), 1, "all topics are asked in ONE call")
-        empty = MockJev({})
-        self.eq(JevRouter(empty).score([], [], Message("user", "x")), {}, "no topics: empty result")
-        self.eq(empty.calls, [], "and Jev is not called")
-        self.raises(NotImplementedError, lambda: JevClient().ask("s", []), "the placeholder JevClient.ask raises NotImplementedError")
+        qs = mock.calls[0]["questions"]
+        self.eq(sorted(qs.keys()), ["topic_1", "topic_4"], "one noul question per topic with key topic_<id>")
+        self.check(qs["topic_1"]["type"] == "noul", "question type is noul")
+        self.check("likes beaches" in qs["topic_1"]["instructions"], "the instructions include the topic card text")
+        self.eq(len(mock.calls), 1, "all topics are asked in ONE call")
+        reset_shared_router()
+        mock2 = MockLayaRouter({})
+        with patch("prism.deciders.laya_decider._get_laya_router", return_value=mock2):
+            self.eq(LayaRouter().score([], [], Message("user", "x")), {}, "no topics: empty result")
+        self.eq(mock2.calls, [], "and Laya is not called")
 
     def test_D6_LLMCardWriter_prompt_and_parsing(self):
         """LLMCardWriter builds the prompt from the old card and new pages and parses the JSON reply."""
@@ -1039,6 +1057,183 @@ class TestDeciders(PrismCase):
         seen["reply"] = json.dumps(dict(label="x"))
         self.raises(KeyError, lambda: w.write(None, pages), "a reply missing fields raises KeyError")
         self.raises(NotImplementedError, lambda: LLMCardWriter()._call_llm("p"), "the placeholder _call_llm raises NotImplementedError")
+
+
+# ══════════════════════════════════════════════════════════════════ L: Laya System-One layer
+
+class TestLayaLayer(PrismCase):
+
+    def test_L1_Laya_exported_recycled_router(self):
+        """get_shared_router returns a singleton, resets cleanly, and is importable as router."""
+        from unittest.mock import patch, MagicMock
+        import prism.deciders.laya_decider as ld
+
+        reset_shared_router()
+        mock_sdk = MagicMock()
+        with patch("laya.Router", return_value=mock_sdk):
+            r1 = get_shared_router()
+            r2 = get_shared_router()
+            self.check(r1 is r2, "get_shared_router returns the same cached instance")
+            self.check(r1 is mock_sdk, "instance matches the underlying Router")
+            self.check(ld.router is r1, "module-level 'router' property resolves to shared router")
+            self.check(ld.shared_router is r1, "module-level 'shared_router' resolves to shared router")
+
+        reset_shared_router()
+        self.check(ld._laya_router is None, "reset_shared_router clears the singleton instance")
+
+    def test_L2_Laya_topic_card_formatting_in_criteria(self):
+        """format_topic_card formats topic card content and appears in choice/noul questions."""
+        from unittest.mock import patch
+        card = TopicCard(
+            label="Billing & Duplicate Charge",
+            description="User was billed twice for March on invoice #4411",
+            key_facts=["Charged twice on March 3 ($120)", "Customer requested refund"],
+            entities=["invoice #4411", "$120", "March"],
+        )
+        formatted = format_topic_card(card)
+        self.check("Billing & Duplicate Charge" in formatted, "formatted text includes label")
+        self.check("Summary: User was billed twice" in formatted, "formatted text includes summary description")
+        self.check("Key facts: Charged twice" in formatted, "formatted text includes key facts")
+        self.check("Entities: invoice #4411" in formatted, "formatted text includes entities")
+
+        reset_shared_router()
+        open_t = Topic(id=1, card=card, page_seqs=[0], is_open=True)
+        closed_card = TopicCard(label="Auth Bug", description="Token expiry", key_facts=["JWT 5m"])
+        closed_t = Topic(id=2, card=closed_card, page_seqs=[1], is_open=False)
+
+        mock = MockLayaRouter({"segment": {"choice": "continue", "confidence": 0.9}})
+        with patch("prism.deciders.laya_decider._get_laya_router", return_value=mock):
+            seg = LayaSegmenter()
+            decision = seg.decide(open_t, [closed_t], [], Message("user", "how is the refund going?"))
+
+        self.eq(decision.action, "continue", "decide returns continue")
+        criteria = mock.calls[0]["questions"]["segment"]["criteria"]
+        self.check("Billing & Duplicate Charge" in criteria["continue"], "continue option has rich open card summary")
+        self.check("Auth Bug" in criteria["return:2"], "return:2 option has rich closed card summary")
+        self.check("Token expiry" in criteria["return:2"], "return:2 option contains closed card description")
+
+    def test_L3_LayaSegmenter_multi_topic_decision_flow(self):
+        """LayaSegmenter handles continue, new, return, strict thresholds, and fallback rules."""
+        open_t = Topic(id=3, card=TopicCard(label="Kerala trip"), page_seqs=[2], is_open=True)
+        closed = [Topic(id=1, card=TopicCard(label="Billing"), page_seqs=[0], is_open=False),
+                  Topic(id=2, card=TopicCard(label="Auth"), page_seqs=[1], is_open=False)]
+        recent = [Message("user", "trip notes")]
+        new_msg = Message("user", "check invoice #4411")
+
+        def run(choice, confidence, probabilities=None):
+            reset_shared_router()
+            mock = MockLayaRouter({"segment": {
+                "choice": choice,
+                "confidence": confidence,
+                "probabilities": probabilities or {choice: confidence},
+            }})
+            from unittest.mock import patch
+            with patch("prism.deciders.laya_decider._get_laya_router", return_value=mock):
+                return LayaSegmenter(min_confidence=0.6, return_threshold=0.8).decide(open_t, closed, recent, new_msg)
+
+        # 1. No open topic -> always new without calling model
+        self.eq(LayaSegmenter().decide(None, closed, recent, new_msg).action, "new", "no open topic -> new")
+
+        # 2. High confidence continue
+        d1 = run("continue", 0.92)
+        self.eq((d1.action, d1.topic_id), ("continue", None), "confident continue")
+
+        # 3. High confidence new
+        d2 = run("new", 0.88)
+        self.eq((d2.action, d2.topic_id), ("new", None), "confident new")
+
+        # 4. Confident return to topic 1
+        d3 = run("return:1", 0.91, {"return:1": 0.91, "continue": 0.05, "new": 0.04})
+        self.eq((d3.action, d3.topic_id), ("return", 1), "confident return to topic 1")
+
+        # 5. Return probability below return_threshold (0.75 < 0.8) -> safe new topic (strict merge)
+        d4 = run("return:1", 0.85, {"return:1": 0.75, "continue": 0.15, "new": 0.10})
+        self.eq(d4.action, "new", "return below return_threshold defaults to new")
+
+        # 6. Low overall confidence (0.4 < min_confidence 0.6) -> safe continue fallback
+        d5 = run("new", 0.40)
+        self.eq(d5.action, "continue", "low confidence defaults to safe continue")
+
+    def test_L4_LayaRouter_noul_topic_relevance_batching(self):
+        """LayaRouter batches all closed topics into one predict call with noul questions."""
+        from unittest.mock import patch
+        topics = [
+            Topic(id=1, card=TopicCard(label="Billing", description="Invoice issue", key_facts=["invoice #4411"]), page_seqs=[0], is_open=False),
+            Topic(id=2, card=TopicCard(label="Auth Bug", description="Login loop"), page_seqs=[1], is_open=False),
+            Topic(id=3, card=TopicCard(label="Kerala Vacation", description="Houseboat"), page_seqs=[2], is_open=False),
+        ]
+        reset_shared_router()
+        mock = MockLayaRouter({
+            "topic_1": {"noul": 0.89},
+            "topic_2": {"noul": 0.12},
+            "topic_3": {"noul": 0.04},
+        })
+        with patch("prism.deciders.laya_decider._get_laya_router", return_value=mock):
+            scores = LayaRouter().score(topics, [Message("user", "hello")], Message("user", "what about the refund on invoice 4411?"))
+
+        self.eq(len(mock.calls), 1, "all 3 topics scored in exactly ONE forward pass")
+        self.eq(scores, {1: 0.89, 2: 0.12, 3: 0.04}, "probabilities correctly returned per topic id")
+
+        qs = mock.calls[0]["questions"]
+        self.check(all(qs[f"topic_{t.id}"]["type"] == "noul" for t in topics), "all questions are type: noul")
+        self.check("invoice #4411" in qs["topic_1"]["instructions"], "topic 1 instructions include its key facts")
+        self.check("Login loop" in qs["topic_2"]["instructions"], "topic 2 instructions include its description")
+
+        reset_shared_router()
+        mock_empty = MockLayaRouter({})
+        with patch("prism.deciders.laya_decider._get_laya_router", return_value=mock_empty):
+            self.eq(LayaRouter().score([], [], Message("user", "test")), {}, "empty topics -> empty dict")
+        self.eq(len(mock_empty.calls), 0, "no predict call made when topics list is empty")
+
+    def test_L5_Laya_integrated_ContextManager_pipeline(self):
+        """ContextManager with LayaSegmenter and LayaRouter handles multi-turn transitions and page migration."""
+        from unittest.mock import patch, MagicMock
+
+        call_count = {"seg": 0, "rt": 0}
+
+        def _mock_predict(state, questions, **kwargs):
+            if "segment" in questions:
+                call_count["seg"] += 1
+                if call_count["seg"] == 1:
+                    return {"answers": {"segment": {"choice": "continue", "confidence": 0.92, "probabilities": {"continue": 0.92}}}, "routing": {"model": "english"}}
+                elif call_count["seg"] == 2:
+                    return {"answers": {"segment": {"choice": "new", "confidence": 0.90, "probabilities": {"new": 0.90}}}, "routing": {"model": "english"}}
+                else:
+                    return {"answers": {"segment": {"choice": "return:1", "confidence": 0.94, "probabilities": {"return:1": 0.94}}}, "routing": {"model": "english"}}
+            else:
+                call_count["rt"] += 1
+                answers = {}
+                t1_score = 0.95 if call_count["rt"] >= 2 else 0.05
+                for qid in questions:
+                    answers[qid] = {"noul": t1_score if qid == "topic_1" else 0.05}
+                return {"answers": answers, "routing": {"model": "english"}}
+
+        mock_router = MagicMock()
+        mock_router.predict = _mock_predict
+
+        with patch("prism.deciders.laya_decider._get_laya_router", return_value=mock_router):
+            h = self.mk(max_tokens=120, high=0.5, low=0.3, protect_recent_pages=1,
+                        seg=LayaSegmenter(), rt=LayaRouter(), label="Laya pipeline")
+
+            # Turn 1: Billing (first message auto-opens Topic 1)
+            h.turn(tok(20, "I was charged twice for March on invoice #4411"), tok(15, "Looking into invoice #4411"))
+            self.eq(h.mgr.open_topic_id, 1, "turn 1: Topic 1 is open")
+            self.eq(h.mgr.page_table.where(0), "L1", "turn 1: page 0 is in L1")
+
+            # Turn 2: Same topic follow-up
+            h.turn(tok(10, "Please process the $120 refund"), tok(10, "Refund requested"))
+            self.eq(h.mgr.open_topic_id, 1, "turn 2: Topic 1 remains open")
+
+            # Turn 3: New topic (Auth) - watermark triggers demotion of page 0 to L2
+            h.turn(tok(25, "Now help me fix the auth token expiry bug"), tok(15, "Checking auth.py"))
+            self.eq(h.mgr.open_topic_id, 2, "turn 3: Topic 2 is now open")
+            self.check(not h.mgr.topics.get(1).is_open, "turn 3: Topic 1 is closed")
+            self.eq(h.mgr.page_table.where(0), "L2", "turn 3: page 0 was demoted to L2 due to watermarks")
+
+            # Turn 4: Return to billing topic -> page 0 restored to L1
+            h.turn(tok(10, "Did the refund for invoice #4411 process?"), tok(10, "Yes refund completed"))
+            self.eq(h.mgr.open_topic_id, 1, "turn 4: Topic 1 reopened via return:1")
+            self.eq(h.mgr.page_table.where(0), "L1", "turn 4: page 0 was brought back into L1 from L2")
 
 
 # ══════════════════════════════════════════════════════════════════ E: end to end
@@ -1122,7 +1317,7 @@ class TestEndToEnd(PrismCase):
 
 # ══════════════════════════════════════════════════════════════════ runner
 
-ORDER = "USRBPTCDE"
+ORDER = "USRBPTCDLE"
 
 
 class ReportResult(unittest.TextTestResult):

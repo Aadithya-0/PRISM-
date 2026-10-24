@@ -1,4 +1,4 @@
-"""Offline stand-ins for Jev and the card-writing LLM.
+"""Offline stand-ins for Laya and the card-writing LLM.
 
 Uses simple keyword overlap and frequency counting so the system runs without any API.
 Crude on purpose: they exist to exercise the manager and test invariants.
