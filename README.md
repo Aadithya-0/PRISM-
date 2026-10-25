@@ -2,38 +2,38 @@ This fie contains all the necessary information for understanding and implementi
 
 ## Standalone L4 local RAG
 
-PRISM includes an independent Level 4 document-retrieval subsystem in [`prism/l4`](prism/l4). It stores embeddings in a persistent local ChromaDB collection and supports PDF, Markdown, and text files. L4 does not yet alter the L1/L2 context-manager pipeline.
+PRISM includes an independent Level 4 document-retrieval subsystem split across [`prism/storage/l4.py`](prism/storage/l4.py) and [`prism/deciders/rag.py`](prism/deciders/rag.py). The `L4` storage class owns the persistent local ChromaDB collection, while the Google-backed RAG classes handle document parsing, embeddings, retrieval, and generation. It supports PDF, Markdown, and text files. L4 does not yet alter the L1/L2 context-manager pipeline.
 
 Install dependencies with `uv sync` (or install the dependencies from `pyproject.toml`), then run:
 
 ```powershell
-python -m prism.l4.test_rag .\documents --store .\.prism\l4_chroma
+python -m prism.deciders.test_rag .\documents --store .\.prism\l4_chroma
 ```
 
-The CLI prints normalized cosine similarity scores, source paths, PDF page numbers, and a generated answer. By default it uses source-aware retrieval: up to 20 candidates are considered, no source contributes more than 3 chunks, and at most 8 labelled chunks are sent to Gemini. This makes cross-document comparisons work without a special flag. Use `--single-source` when you specifically want only the globally nearest chunks. Use `--threshold 0.65` to filter retrieved context. Run `python -m prism.l4.test_rag --help` for all options.
+The CLI prints normalized cosine similarity scores, source paths, PDF page numbers, and a generated answer. By default it uses source-aware retrieval: up to 20 candidates are considered, no source contributes more than 3 chunks, and at most 8 labelled chunks are sent to Gemini. This makes cross-document comparisons work without a special flag. Use `--single-source` when you specifically want only the globally nearest chunks. Use `--threshold 0.65` to filter retrieved context. Run `python -m prism.deciders.test_rag --help` for all options.
 
 After documents have already been indexed, use `--query-only` to avoid sending their chunks to the embedding API again:
 
 ```powershell
-python -m prism.l4.test_rag . --query-only
+python -m prism.deciders.test_rag . --query-only
 ```
 
 For comparison or synthesis questions, the default behavior is already source-balanced. The old `--cross-document` flag is still accepted as an explicit alias for that default:
 
 ```powershell
-python -m prism.l4.test_rag . --query-only --cross-document
+python -m prism.deciders.test_rag . --query-only --cross-document
 ```
 
 To use the normal native behavior without the redundant flag:
 
 ```powershell
-python -m prism.l4.test_rag . --query-only
+python -m prism.deciders.test_rag . --query-only
 ```
 
 To opt out of balancing:
 
 ```powershell
-python -m prism.l4.test_rag . --query-only --single-source
+python -m prism.deciders.test_rag . --query-only --single-source
 ```
 
 ### Important L4 behavior and limitations
@@ -51,7 +51,7 @@ python -m prism.l4.test_rag . --query-only --single-source
 
 ### Google Gemini setup
 
-The default provider uses Google's Gemini API. A blank, gitignored [`.env`](.env) file is included for local configuration. Create a free key in [Google AI Studio](https://aistudio.google.com/apikey):
+The L4 provider uses Google's Gemini API. A blank, gitignored [`.env`](.env) file is included for local configuration. Create a free key in [Google AI Studio](https://aistudio.google.com/apikey):
 
 1. Sign in with a Google account.
 2. Open **Get API key** / **Create API key**.
@@ -67,20 +67,10 @@ The CLI loads `.env` automatically. You can also set the variable in PowerShell:
 
 ```powershell
 $env:GEMINI_API_KEY = "your-key"
-python -m prism.l4.test_rag .\documents
+python -m prism.deciders.test_rag .\documents
 ```
 
-For the most efficient Google API generation model in this project, keep the default `gemini-3.5-flash-lite`. Google returned this as the replacement for `gemini-2.5-flash-lite` for new users. It is intended for low-latency/high-volume use, subject to current quotas. The RAG embedding model remains `gemini-embedding-001`; Gemma is a separate downloadable open-model family and is better used through Ollama/local deployment, not as the default Google embedding model. Google's free tier is subject to model-specific rate and daily limits that can change. Check the current limits in Google AI Studio before indexing a large corpus; index in smaller batches and use `--top-k` conservatively. The key is required for Google embeddings and generation, and should never be committed or placed in tracked files. Without a generation provider/key, indexing and retrieval can still be used programmatically, but generation fails explicitly.
-
-For fully local operation, install [Ollama](https://ollama.com/), pull the default models, and run:
-
-```powershell
-ollama pull nomic-embed-text
-ollama pull gemma3:4b
-python -m prism.l4.test_rag .\documents --provider ollama
-```
-
-The Ollama defaults are `nomic-embed-text` for embeddings and `gemma3:4b` for generation. Override them with `OLLAMA_EMBEDDING_MODEL`, `OLLAMA_GENERATION_MODEL`, `--embedding-model`, or `--generation-model`. The Ollama server must be available at `OLLAMA_HOST` or its default local address.
+For the most efficient Google API generation model in this project, keep the default `gemini-3.5-flash-lite`. It is intended for low-latency/high-volume use, subject to current quotas. The RAG embedding model is `gemini-embedding-001`. Google's free tier is subject to model-specific rate and daily limits that can change. Check the current limits in Google AI Studio before indexing a large corpus; index in smaller batches and use `--top-k` conservatively. The key is required for Google embeddings and generation, and should never be committed or placed in tracked files. Without a key, indexing and retrieval cannot call the Google embedding API, and generation fails explicitly.
 
 # PRISM System Architecture & Class Reference Manual
 

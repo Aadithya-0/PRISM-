@@ -1,8 +1,7 @@
-"""Persistent local RAG services for PRISM's standalone L4 subsystem."""
+"""Google-backed RAG orchestration for PRISM's standalone L4 archive."""
 from __future__ import annotations
 
 import hashlib
-import logging
 import os
 import re
 from dataclasses import dataclass
@@ -10,7 +9,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any, Protocol, Sequence
 
-logger = logging.getLogger(__name__)
+from ..storage.l4 import L4, L4StorageError
 
 
 class L4Error(RuntimeError):
@@ -22,7 +21,7 @@ class SourceDocumentError(L4Error):
 
 
 class ProviderError(L4Error):
-    """An embedding or generation provider failed or is not configured."""
+    """The Google embedding or generation provider failed."""
 
 
 class RetrievalError(L4Error):
@@ -40,12 +39,10 @@ class ChunkResult:
 
 @dataclass(frozen=True)
 class L4Config:
-    """Configuration for the local vector store and provider selection."""
+    """Configuration for the Google-backed local L4 archive."""
 
     persist_directory: str = ".prism/l4_chroma"
     collection_name: str = "prism_l4_documents"
-    embedding_provider: str = "google"
-    generation_provider: str = "google"
     embedding_model: str = "gemini-embedding-001"
     generation_model: str = "gemini-3.5-flash-lite"
     chunk_size: int = 1200
@@ -75,8 +72,10 @@ def _load_source(file_path: Path) -> list[tuple[str, int | None]]:
         if suffix == ".pdf":
             from pypdf import PdfReader
 
-            pages = PdfReader(str(file_path)).pages
-            return [(page.extract_text() or "", index + 1) for index, page in enumerate(pages)]
+            return [
+                (page.extract_text() or "", index + 1)
+                for index, page in enumerate(PdfReader(str(file_path)).pages)
+            ]
         if suffix in {".txt", ".md"}:
             return [(file_path.read_text(encoding="utf-8"), None)]
     except Exception as exc:
@@ -112,6 +111,8 @@ def _cosine_similarity(distance: float) -> float:
 
 
 class GoogleProvider:
+    """Embedding and generation adapter for Google AI Studio."""
+
     def __init__(self, api_key: str | None, embedding_model: str, generation_model: str):
         try:
             from dotenv import load_dotenv
@@ -174,50 +175,8 @@ class GoogleProvider:
             raise ProviderError(f"Google generation request failed: {exc}") from exc
 
 
-class OllamaProvider:
-    """Provider adapter for an Ollama server running locally."""
-
-    def __init__(self, embedding_model: str, generation_model: str, host: str | None = None):
-        self.embedding_model = embedding_model
-        self.generation_model = generation_model
-        self.host = (host or os.environ.get("OLLAMA_HOST", "http://localhost:11434")).rstrip("/")
-
-    def _request(self, endpoint: str, payload: dict[str, Any]) -> dict[str, Any]:
-        import json
-        from urllib.error import URLError
-        from urllib.request import Request, urlopen
-
-        try:
-            request = Request(
-                f"{self.host}/api/{endpoint}",
-                data=json.dumps(payload).encode(),
-                headers={"Content-Type": "application/json"},
-            )
-            with urlopen(request, timeout=60) as response:
-                return json.loads(response.read())
-        except (OSError, URLError, ValueError) as exc:
-            raise ProviderError(f"Ollama request failed: {exc}") from exc
-
-    def embed_documents(self, texts: Sequence[str]) -> list[list[float]]:
-        response = self._request("embed", {"model": self.embedding_model, "input": list(texts)})
-        embeddings = response.get("embeddings")
-        if not isinstance(embeddings, list) or len(embeddings) != len(texts):
-            raise ProviderError("Ollama returned an invalid embedding response.")
-        return embeddings
-
-    def embed_query(self, text: str) -> list[float]:
-        return self.embed_documents([text])[0]
-
-    def generate(self, prompt: str) -> str:
-        response = self._request("generate", {"model": self.generation_model, "prompt": prompt, "stream": False})
-        text = response.get("response")
-        if not isinstance(text, str) or not text.strip():
-            raise ProviderError("Ollama returned no generated text.")
-        return text
-
-
 class LocalRAG:
-    """Index and retrieve documents from a persistent ChromaDB collection."""
+    """Index, retrieve, and generate from the local L4 archive."""
 
     def __init__(
         self,
@@ -226,53 +185,39 @@ class LocalRAG:
         api_key: str | None = None,
         embedding_provider: EmbeddingProvider | None = None,
         generation_provider: GenerationProvider | None = None,
-        collection: Any = None,
+        storage: L4 | Any | None = None,
     ):
         self.config = config or L4Config()
-        self._embedding_provider = embedding_provider or self._make_provider(api_key, "embedding")
-        self._generation_provider = generation_provider or self._make_provider(api_key, "generation")
-        self._collection = collection or self._open_collection()
+        self._embedding_provider = embedding_provider or GoogleProvider(
+            api_key, self.config.embedding_model, self.config.generation_model
+        )
+        self._generation_provider = generation_provider or GoogleProvider(
+            api_key, self.config.embedding_model, self.config.generation_model
+        )
+        self._storage = storage or self._open_storage()
 
-    def _make_provider(self, api_key: str | None, purpose: str) -> Any:
-        provider = self.config.embedding_provider if purpose == "embedding" else self.config.generation_provider
-        if provider == "google":
-            return GoogleProvider(api_key, self.config.embedding_model, self.config.generation_model)
-        if provider == "ollama":
-            return OllamaProvider(self.config.embedding_model, self.config.generation_model)
-        raise ProviderError(f"Unsupported {purpose} provider: {provider}")
-
-    def _open_collection(self) -> Any:
+    def _open_storage(self) -> L4:
         try:
-            import chromadb
-
-            client = chromadb.PersistentClient(path=self.config.persist_directory)
-            collection = client.get_or_create_collection(
-                name=self.config.collection_name,
-                metadata={"hnsw:space": "cosine"},
-            )
-            if (collection.metadata or {}).get("hnsw:space") != "cosine":
-                raise RetrievalError(
-                    f"Collection {self.config.collection_name!r} is not configured for cosine similarity."
-                )
-            return collection
-        except ImportError as exc:
-            raise RetrievalError("Install chromadb to use the L4 vector store.") from exc
-        except Exception as exc:
-            raise RetrievalError(f"Could not initialize ChromaDB: {exc}") from exc
+            return L4(self.config.persist_directory, self.config.collection_name)
+        except L4StorageError as exc:
+            raise RetrievalError(str(exc)) from exc
 
     def chunk_and_insert(self, file_path: str, metadata: dict[str, Any] | None = None) -> list[str]:
         path = Path(file_path)
         source_pages = _load_source(path)
-        base_metadata = dict(metadata or {})
         timestamp = datetime.now(UTC).isoformat()
         contents: list[str] = []
         records: list[dict[str, Any]] = []
         ids: list[str] = []
         for text, page_number in source_pages:
-            for index, content in enumerate(_split_text(text, self.config.chunk_size, self.config.chunk_overlap)):
-                chunk_id = hashlib.sha256(f"{path.resolve()}:{page_number}:{index}:{content}".encode()).hexdigest()[:24]
+            for index, content in enumerate(
+                _split_text(text, self.config.chunk_size, self.config.chunk_overlap)
+            ):
+                chunk_id = hashlib.sha256(
+                    f"{path.resolve()}:{page_number}:{index}:{content}".encode()
+                ).hexdigest()[:24]
                 chunk_metadata = {
-                    **base_metadata,
+                    **(metadata or {}),
                     "source_path": str(path.resolve()),
                     "chunk_id": chunk_id,
                     "created_at": timestamp,
@@ -286,19 +231,9 @@ class LocalRAG:
             raise SourceDocumentError(f"No indexable text found in {path}")
         try:
             embeddings = self._embedding_provider.embed_documents(contents)
-            self._collection.upsert(ids=ids, documents=contents, metadatas=records, embeddings=embeddings)
-            if hasattr(self._collection, "get") and hasattr(self._collection, "delete"):
-                existing = self._collection.get(
-                    where={"source_path": str(path.resolve())},
-                    include=["metadatas"],
-                )
-                stale_ids = [
-                    existing_id
-                    for existing_id in existing.get("ids", [])
-                    if existing_id not in ids
-                ]
-                if stale_ids:
-                    self._collection.delete(ids=stale_ids)
+            self._storage.upsert(ids, contents, records, embeddings)
+            if hasattr(self._storage, "remove_stale"):
+                self._storage.remove_stale(str(path.resolve()), set(ids))
         except L4Error:
             raise
         except Exception as exc:
@@ -311,11 +246,7 @@ class LocalRAG:
         if top_k <= 0:
             raise ValueError("top_k must be positive")
         try:
-            result = self._collection.query(
-                query_embeddings=[self._embedding_provider.embed_query(user_query.strip())],
-                n_results=top_k,
-                include=["documents", "metadatas", "distances"],
-            )
+            result = self._storage.query(self._embedding_provider.embed_query(user_query.strip()), top_k)
             documents = result.get("documents", [[]])[0]
             metadatas = result.get("metadatas", [[]])[0]
             distances = result.get("distances", [[]])[0]
@@ -389,11 +320,7 @@ class LocalRAG:
     ) -> str:
         if cross_document:
             results = self.query_cross_document(
-                user_query,
-                candidate_k=candidate_k,
-                max_chunks_per_source=max_chunks_per_source,
-                max_total_chunks=max_total_chunks,
-                threshold=threshold,
+                user_query, candidate_k, max_chunks_per_source, max_total_chunks, threshold
             )
         elif threshold is not None:
             results = self.get_chunks_above_threshold_with_limit(user_query, threshold, top_k)
@@ -403,17 +330,24 @@ class LocalRAG:
             f"SOURCE: {item.metadata.get('source_path', 'unknown')}\n"
             f"PAGE: {item.metadata.get('page_number', 'n/a')}\n{item.content}"
             for item in results
-        )
-        if not context:
-            context = "(No relevant source chunks were retrieved.)"
+        ) or "(No relevant source chunks were retrieved.)"
         prompt = (
             "Answer the question using only the supplied context. If the context does not contain "
             "the answer, say that the available documents do not provide enough information.\n\n"
             f"CONTEXT:\n{context}\n\nQUESTION:\n{user_query}"
         )
-        if self._generation_provider is None:
-            raise ProviderError("No generation provider is configured.")
         return self._generation_provider.generate(prompt)
 
 
-__all__ = ["ChunkResult", "L4Config", "LocalRAG", "L4Error", "ProviderError", "RetrievalError", "SourceDocumentError"]
+__all__ = [
+    "ChunkResult",
+    "EmbeddingProvider",
+    "GenerationProvider",
+    "GoogleProvider",
+    "L4Config",
+    "L4Error",
+    "LocalRAG",
+    "ProviderError",
+    "RetrievalError",
+    "SourceDocumentError",
+]

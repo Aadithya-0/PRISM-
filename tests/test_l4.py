@@ -2,7 +2,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from prism.l4.rag import ChunkResult, LocalRAG, _cosine_similarity, _split_text
+from prism.deciders.rag import ChunkResult, LocalRAG, _cosine_similarity, _split_text
 
 
 class FakeEmbeddings:
@@ -31,13 +31,20 @@ class FakeCollection:
             {key: (document, metadata, embedding) for key, document, metadata, embedding in zip(ids, documents, metadatas, embeddings)}
         )
 
-    def query(self, query_embeddings, n_results, include):
-        rows = list(self.rows.values())[:n_results]
+    def query(self, embedding, top_k):
+        rows = list(self.rows.values())[:top_k]
         return {
             "documents": [[row[0] for row in rows]],
             "metadatas": [[row[1] for row in rows]],
             "distances": [[0.0 for row in rows]],
         }
+
+    def remove_stale(self, source_path, current_ids):
+        stale_ids = [
+            key for key, value in self.rows.items()
+            if value[1].get("source_path") == source_path and key not in current_ids
+        ]
+        self.delete(stale_ids)
 
     def get(self, where, include):
         matching = [
@@ -71,7 +78,7 @@ class L4Tests(unittest.TestCase):
             rag = LocalRAG(
                 embedding_provider=FakeEmbeddings(),
                 generation_provider=generation,
-                collection=FakeCollection(),
+                storage=FakeCollection(),
             )
             self.assertEqual(len(rag.chunk_and_insert(str(path))), 1)
             result = rag.query("local fact")[0]
@@ -85,7 +92,7 @@ class L4Tests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / "notes.md"
             collection = FakeCollection()
-            rag = LocalRAG(embedding_provider=FakeEmbeddings(), collection=collection)
+            rag = LocalRAG(embedding_provider=FakeEmbeddings(), storage=collection)
             path.write_text("old content", encoding="utf-8")
             old_ids = rag.chunk_and_insert(str(path))
             path.write_text("new content", encoding="utf-8")
@@ -94,7 +101,7 @@ class L4Tests(unittest.TestCase):
             self.assertEqual(set(collection.rows), set(new_ids))
 
     def test_empty_query_and_threshold_are_rejected(self):
-        rag = LocalRAG(embedding_provider=FakeEmbeddings(), collection=FakeCollection())
+        rag = LocalRAG(embedding_provider=FakeEmbeddings(), storage=FakeCollection())
         with self.assertRaises(ValueError):
             rag.query(" ")
         with self.assertRaises(ValueError):
