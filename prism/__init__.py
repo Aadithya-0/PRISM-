@@ -18,6 +18,7 @@ from .deciders import (
     reset_shared_router,
 )
 from .models import Message, PageBlock, Topic, TopicCard, estimate_tokens
+from .l4 import ChunkResult, L4Config, LocalRAG
 from .storage import (
     L1,
     L1FullError,
@@ -57,4 +58,7 @@ __all__ = [
     "KeywordSegmenter",
     "KeywordRouter",
     "FakeCardWriter",
+    "ChunkResult",
+    "L4Config",
+    "LocalRAG",
 ]

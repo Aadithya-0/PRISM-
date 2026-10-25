@@ -1,5 +1,87 @@
 This fie contains all the necessary information for understanding and implementing the PRISM architecture.
 
+## Standalone L4 local RAG
+
+PRISM includes an independent Level 4 document-retrieval subsystem in [`prism/l4`](prism/l4). It stores embeddings in a persistent local ChromaDB collection and supports PDF, Markdown, and text files. L4 does not yet alter the L1/L2 context-manager pipeline.
+
+Install dependencies with `uv sync` (or install the dependencies from `pyproject.toml`), then run:
+
+```powershell
+python -m prism.l4.test_rag .\documents --store .\.prism\l4_chroma
+```
+
+The CLI prints normalized cosine similarity scores, source paths, PDF page numbers, and a generated answer. By default it uses source-aware retrieval: up to 20 candidates are considered, no source contributes more than 3 chunks, and at most 8 labelled chunks are sent to Gemini. This makes cross-document comparisons work without a special flag. Use `--single-source` when you specifically want only the globally nearest chunks. Use `--threshold 0.65` to filter retrieved context. Run `python -m prism.l4.test_rag --help` for all options.
+
+After documents have already been indexed, use `--query-only` to avoid sending their chunks to the embedding API again:
+
+```powershell
+python -m prism.l4.test_rag . --query-only
+```
+
+For comparison or synthesis questions, the default behavior is already source-balanced. The old `--cross-document` flag is still accepted as an explicit alias for that default:
+
+```powershell
+python -m prism.l4.test_rag . --query-only --cross-document
+```
+
+To use the normal native behavior without the redundant flag:
+
+```powershell
+python -m prism.l4.test_rag . --query-only
+```
+
+To opt out of balancing:
+
+```powershell
+python -m prism.l4.test_rag . --query-only --single-source
+```
+
+### Important L4 behavior and limitations
+
+- **Indexing is remote, storage is local:** Google generates embeddings and answers through the configured API. ChromaDB stores indexed chunks locally under `.prism/l4_chroma`.
+- **The API key is needed for live Google indexing and generation:** local unit tests, PDF parsing, and ChromaDB storage do not need a key.
+- **Embedding quota is per chunk:** a PDF may become dozens of embedding requests. A free-tier 429 means the provider quota window was exceeded; wait for it to reset rather than repeatedly re-indexing.
+- **Use `--query-only` after indexing:** it reuses the local collection and avoids sending document chunks to Google again.
+- **Re-indexing replaces a source:** running indexing again for a file removes stale chunks for that same resolved path before retaining the current chunks.
+- **Cross-document retrieval is source-aware, not magic:** it can balance only among sources represented in the retrieved candidate pool. If a source is not semantically retrieved, the generator cannot use it. Mention document names or distinctive terms when a comparison needs specific files.
+- **Similarity scores are normalized cosine similarities:** scores are displayed between `0.0` and `1.0`; they are not probabilities or factual-confidence guarantees.
+- **Thresholds are filters, not answers:** a high threshold can remove useful evidence and leave the generator with insufficient context.
+- **PDF extraction is text-only:** scanned/image-only PDFs may produce no usable text unless OCR is run first.
+- **L4 is currently standalone:** it does not yet feed retrieved documents into PRISM’s L1/L2 context-manager pipeline.
+
+### Google Gemini setup
+
+The default provider uses Google's Gemini API. A blank, gitignored [`.env`](.env) file is included for local configuration. Create a free key in [Google AI Studio](https://aistudio.google.com/apikey):
+
+1. Sign in with a Google account.
+2. Open **Get API key** / **Create API key**.
+3. Choose an existing Google AI Studio project or create one when prompted.
+4. Copy the key once it is displayed; do not commit or share it.
+5. Paste it into `.env`:
+
+```dotenv
+GEMINI_API_KEY=your-key-here
+```
+
+The CLI loads `.env` automatically. You can also set the variable in PowerShell:
+
+```powershell
+$env:GEMINI_API_KEY = "your-key"
+python -m prism.l4.test_rag .\documents
+```
+
+For the most efficient Google API generation model in this project, keep the default `gemini-3.5-flash-lite`. Google returned this as the replacement for `gemini-2.5-flash-lite` for new users. It is intended for low-latency/high-volume use, subject to current quotas. The RAG embedding model remains `gemini-embedding-001`; Gemma is a separate downloadable open-model family and is better used through Ollama/local deployment, not as the default Google embedding model. Google's free tier is subject to model-specific rate and daily limits that can change. Check the current limits in Google AI Studio before indexing a large corpus; index in smaller batches and use `--top-k` conservatively. The key is required for Google embeddings and generation, and should never be committed or placed in tracked files. Without a generation provider/key, indexing and retrieval can still be used programmatically, but generation fails explicitly.
+
+For fully local operation, install [Ollama](https://ollama.com/), pull the default models, and run:
+
+```powershell
+ollama pull nomic-embed-text
+ollama pull gemma3:4b
+python -m prism.l4.test_rag .\documents --provider ollama
+```
+
+The Ollama defaults are `nomic-embed-text` for embeddings and `gemma3:4b` for generation. Override them with `OLLAMA_EMBEDDING_MODEL`, `OLLAMA_GENERATION_MODEL`, `--embedding-model`, or `--generation-model`. The Ollama server must be available at `OLLAMA_HOST` or its default local address.
+
 # PRISM System Architecture & Class Reference Manual
 
 > **PRISM**: *Page-based Reduced-context In-memory Storage Manager*  
